@@ -129,7 +129,7 @@ class SpaceNet6DataModule(LightningDataModule):
         data = list(zip(imgs, msks))
 
         train_files, test_files = train_test_split(data, test_size=0.1, random_state=self.args.seed)
-        train_files, val_files = train_test_split(data, test_size=0.4, random_state=self.args.seed)
+        train_files, val_files = train_test_split(train_files, test_size=0.4, random_state=self.args.seed)
 
         self.spaceNet6_train = SpaceNet6(train_files, self.args.crop_size, self.args.exec_mode)
         self.spaceNet6_test = SpaceNet6(test_files, self.args.crop_size, self.args.exec_mode)

@@ -165,4 +165,5 @@ data/
 checkpoints/
 checkpoints_backup/
 apikey.txt
+**/*.png
 
