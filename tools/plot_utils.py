@@ -49,7 +49,7 @@ def plot_label_pin(image, pins, labels):
     # Loop through the pins and labels to assign values
     for pin, label in zip(pins, labels):
         x, y = pin
-        labeled_image[y, x] = label
+        labeled_image[x, y] = label
 
     # Plot the resulting image
     # plt.imshow(labeled_image, cmap='gray')
