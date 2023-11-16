@@ -1,5 +1,5 @@
 import numpy as np
-
+from tools.data_utils import count_pins, gen_mesh_pins
 
 def visualize_pins(image, pins, color_map='viridis'):
     """
@@ -57,3 +57,10 @@ def plot_label_pin(image, pins, labels):
     # plt.show()
 
     return labeled_image
+
+
+def plot_all(image, r):
+    pin_locations = gen_mesh_pins(image, 1)
+    label = count_pins(image.numpy(), pin_locations, r)
+    count_image = plot_label_pin(image, pin_locations, label)
+    return count_image

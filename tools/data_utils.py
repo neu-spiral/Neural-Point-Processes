@@ -99,15 +99,65 @@ def count_within_radius(image, center_x, center_y, radius):
     return count
 
 
-def count_all(binary_image, radius=1):
-    # Initialize an empty count image with the same shape as the binary image
-    count_image = np.zeros_like(binary_image, dtype=np.uint8)
-    # Iterate through each pixel in the binary image and apply the count function
-    for x in range(binary_image.shape[0]):
-        for y in range(binary_image.shape[1]):
-            count = count_ones_within_radius(binary_image, x, y, radius)
-            count_image[x, y] = count
-    return count_image
+import numpy as np
+
+def count_all(binary_images, radius=1):
+    """
+    Count the adjacent ones within a specified radius around each pixel in a batch of binary images or a single binary image.
+
+    Args:
+    binary_images (numpy.ndarray): A 2D, 3D, or 4D array of binary images. If 2D, it's a single binary image with shape (height, width). If 3D, it's a single binary image with shape (1, height, width). If 4D, it's a batch of binary images with shape (batch_size, 1, height, width).
+    radius (int): The radius within which to count adjacent ones.
+
+    Returns:
+    numpy.ndarray: A 2D, 3D, or 4D array with the same shape as the input binary_images, containing counts for each pixel.
+    """
+    if binary_images.ndim == 2:  # Single 2D image case
+        height, width = binary_images.shape
+        count_image = np.zeros_like(binary_images, dtype=np.uint8)
+
+        for x in range(height):
+            for y in range(width):
+                count = count_within_radius(binary_images, x, y, radius)
+                count_image[x, y] = count
+
+        return count_image
+
+    elif binary_images.ndim == 3:  # Single 3D image or single image with a squeezed channel dimension
+        if binary_images.shape[0] == 1:
+            binary_image = binary_images[0]
+            height, width = binary_image.shape
+            count_image = np.zeros_like(binary_image, dtype=np.uint8)
+
+            for x in range(height):
+                for y in range(width):
+                    count = count_within_radius(binary_image, x, y, radius)
+                    count_image[x, y] = count
+
+            return count_image
+        else:
+            raise ValueError("Input binary_images with 3 dimensions must have a batch size of 1.")
+
+    elif binary_images.ndim == 4:  # Batched images case
+        batch_size, _, height, width = binary_images.shape
+        count_images = np.zeros_like(binary_images, dtype=np.uint8)
+
+        for b in range(batch_size):
+            binary_image = binary_images[b, 0]  # Extract the single-channel image
+
+            count_image = np.zeros_like(binary_image, dtype=np.uint8)
+
+            for x in range(height):
+                for y in range(width):
+                    count = count_within_radius(binary_image, x, y, radius)
+                    count_image[x, y] = count
+
+            count_images[b, 0] = count_image  # Store the count image in the batch
+
+        return count_images
+
+    else:
+        raise ValueError("Input binary_images must be either 2D, 3D, or 4D.")
 
 
 def count_pins(binary_image, pins, radius):
