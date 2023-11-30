@@ -1,5 +1,6 @@
 import torch
-
+import torch.nn as nn
+from functools import lru_cache
 
 def gaussian_kernel_matrix(X, Y, sigma):
     """

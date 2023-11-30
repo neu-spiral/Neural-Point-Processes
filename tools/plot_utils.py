@@ -92,7 +92,7 @@ def plot_loss(train_losses, val_losses, val_every_epoch, NPP, sigma, dataset, le
     plt.close()
     
     
-def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, dataset, model_name="Auto encoder"):
+def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name="Auto encoder"):
     # Unpack the data
     test_loss_npp_true, test_loss_npp_false = loss_vs_sigma_data
     test_loss_npp_false = [test_loss_npp_false for i in range(len(sigmas))]

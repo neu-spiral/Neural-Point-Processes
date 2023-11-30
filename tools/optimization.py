@@ -1,5 +1,5 @@
 import torch
-
+from tools.losses import NPPLoss
 
 class EarlyStoppingCallback:
     def __init__(self, patience=10, min_delta=0.001):
@@ -20,7 +20,7 @@ class EarlyStoppingCallback:
         return False  # Continue training
     
     
-def train_model(model, train_dataloader, val_dataloader, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping):
+def train_model(model, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping):
     train_losses = []  # To track train loss for plotting
     val_losses = []    # To track validation loss for plotting
     best_val_loss = float('inf') 
@@ -74,7 +74,7 @@ def train_model(model, train_dataloader, val_dataloader, num_epochs, val_every_e
     return model, train_losses, val_losses
 
 
-def evaluate_model(model, dataloader, device):
+def evaluate_model(model, dataloader, input_channel, device):
     model.eval()
     total_loss = 0.0
     criterion = NPPLoss(identity=True).to(device)
