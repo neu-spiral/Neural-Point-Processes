@@ -8,6 +8,10 @@ import random
 import os
 import csv
 from PIL import Image
+from torchvision import datasets, transforms
+from torch.utils.data import Dataset, DataLoader, random_split
+import pandas as pd
+from skimage import io, transform
 
 
 #Pin generation
@@ -228,3 +232,89 @@ def save_data(images, pins, labels, output_directory):
             csv_writer.writerow([f"{i}.png", image_pins, label])
 
     print("Data and images have been saved to the CSV and image files.")
+    
+
+
+class PinDataset(Dataset):
+    """Synthetic Heatmaps dataset."""
+
+    def __init__(self, csv_file, root_dir, transform=None):
+        """
+        Arguments:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.pins_frame = pd.read_csv(csv_file)
+        self.root_dir = root_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.pins_frame)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        img_name = os.path.join(self.root_dir,
+                                self.pins_frame.iloc[idx, 0])
+        image = io.imread(img_name)
+        pins = np.asarray(eval(self.pins_frame.iloc[idx, 1]))
+        outputs = np.asarray(eval(self.pins_frame.iloc[idx, 2]))
+
+        sample = {'image': image, 'pins': pins, 'outputs': outputs}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
+    
+
+class ToTensor(object):
+    """Convert ndarrays in sample to Tensors."""
+
+    def __call__(self, sample):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+
+        # swap color axis because
+        # numpy image: H x W x C
+        # torch image: C x H x W
+        if len(image.shape) == 2:
+            image = image.reshape(image.shape[0], image.shape[1], 1)
+        image = image.transpose((2, 0, 1))
+        image = image/image.max()
+        return {'image': torch.from_numpy(image),
+                'pins': torch.from_numpy(pins),
+                'outputs': torch.from_numpy(outputs).to(torch.float32)}
+    
+    
+# Define a custom transform to resize the image
+class Resize(object):
+    def __call__(self, sample, size=(28,28)):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+        
+        # Resize the image to desired sized pixels
+        image = transforms.functional.resize(image, size)
+        
+        return {'image': image, 'pins': pins, 'outputs': outputs}
+
+    
+def custom_collate_fn(batch):
+    images = [sample['image'] for sample in batch]
+    pins = [sample['pins'] for sample in batch]
+    outputs = [sample['outputs'] for sample in batch]
+
+
+    return {
+        'image': torch.stack(images, dim=0),
+        'pins': pins,
+        'outputs': outputs}
+
+
+def save_data(data, filename):
+    np.save(filename, data)
+
+# Function to load data
+def load_data(filename):
+    return np.load(filename)
