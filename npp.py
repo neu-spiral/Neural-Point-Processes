@@ -16,13 +16,17 @@ from tools.models import Autoencoder
 from tools.optimization import EarlyStoppingCallback, train_model, evaluate_model
 import matplotlib.pyplot as plt
 from torch_lr_finder import LRFinder
+import time
 
+# todo: cosine annealing lr
     
-def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_dataloader, val_dataloader, test_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, device, num_runs=1):
+def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, num_epochs, val_every_epoch, learning_rates, device, num_runs=3):
     test_losses_npp_true = []
     test_losses_npp_false= []
-
+    experiment_id = int(time.time())
+    
     for run in range(num_runs):
+        count = 0
         test_losses_vs_sigma_npp_true = []
         test_loss_npp_false = None
 
@@ -32,23 +36,25 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_data
 
         autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
         
-        optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rate)
-        model, train_losses, val_losses = train_model(autoencoder, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping)
+        optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count])
+        model, train_losses, val_losses = train_model(autoencoder, train_loader, val_loader, input_channel, num_epochs, val_every_epoch, learning_rates[count], criterion, optimizer, device, early_stopping, experiment_id)
 
-        test_loss_npp_false = evaluate_model(autoencoder, test_dataloader, input_channel, device)
-        print(f"Test loss npp_f:{test_loss_npp_false}")
+        test_loss_npp_false = evaluate_model(autoencoder, test_loader, input_channel, device)
+        print(f"MSE Test loss:{test_loss_npp_false:.3f}")
         test_losses_npp_false.append(test_loss_npp_false)
-
+        
+        count += 1
         # Run LR Finder for different sigma values
         for sigma in sigmas:
             early_stopping = EarlyStoppingCallback(patience=5, min_delta=0.001)
             criterion = NPPLoss(identity=False, sigma=sigma).to(device)
             autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
-            optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rate)
-            model, train_losses, val_losses = train_model(autoencoder, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping)
-            test_loss = evaluate_model(autoencoder, test_dataloader, input_channel, device)
-            print(f"Test loss npp_t:{test_loss}")
+            optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count])
+            model, train_losses, val_losses = train_model(autoencoder, train_loader, val_loader, input_channel, num_epochs, val_every_epoch, learning_rates[count], criterion, optimizer, device, early_stopping, experiment_id)
+            test_loss = evaluate_model(autoencoder, test_loader, input_channel, device)
+            print(f"NPP sigma={sigma} Test loss:{test_loss:.3f}")
             test_losses_vs_sigma_npp_true.append(test_loss)
+            count += 1
 
         test_losses_npp_true.append(test_losses_vs_sigma_npp_true)
     return test_losses_npp_true, test_losses_npp_false
@@ -70,9 +76,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Your script description here.")
 
     # Datasets and hyperparameters
-    parser.add_argument("--dataset", type=str, default="Synthetic", help="Dataset name")
+    parser.add_argument("--dataset", type=str, default="PinMNIST", help="Dataset name")
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
-    parser.add_argument("--mesh", type=bool, default=True, help="Value for 'mesh'")
+    parser.add_argument("--mesh", type=bool, default=False, help="Value for 'mesh'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
     parser.add_argument("--fixed_pins", type=bool, default=True, help="Value for 'fixed_pins'")
@@ -83,10 +89,10 @@ def parse_args():
     # Hyperparameters
     parser.add_argument("--num_epochs", type=int, default=200, help="Number of epochs")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    parser.add_argument("--learning_rate", type=float, default=0.01, help="Learning rate")
+    parser.add_argument("--learning_rate", type=float, default=0.1, help="Learning rate")
 
     # List of sigma values
-    parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2, 5], help="List of sigma values to test")
+    parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2], help="List of sigma values to test")
 
     # Kernel sizes
     parser.add_argument("--num_encoder", nargs="+", type=int, default=[16, 8], help="List of encoder kernel sizes")
@@ -122,7 +128,7 @@ def main():
     num_kernels_decoder = args.num_decoder
     learning_rate = args.learning_rate
     
-    input_channel = 1 if dataset == "MNIST" else 3
+    input_channel = 1 if dataset == "PinMNIST" else 3
     val_every_epoch = 5
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -132,12 +138,14 @@ def main():
             data_folder = f"./data/MNIST_{n}images_mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
         else:
             data_folder = f"./data/MNIST_{n}images_random_fixed{fixed_pins}_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
-
+         # Set the sigma values you want to test
+        best_lrs = [0.05, 0.05, 0.05, 0.05, 0.05, 0.001]
     if dataset == "Synthetic":
         if mesh:
             data_folder = f"./data/Synthetic_{n}images_{d1}by{d2}pixels_{d}_distanced_grid_pins_{seed}seed/"
         else:
             data_folder = f"./data/Synthetic_{n}images_{d1}by{d2}pixels_upto{n_pins}pins_{seed}seed/"
+        best_lrs = [0.1, 0.01, 0.01, 0.01, 0.01, 0.001]
 
 
     # Create a transform pipeline that includes the resizing step
@@ -166,7 +174,7 @@ def main():
 
     # Run and save the pipeline data
     loss_vs_sigma_data = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_dataloader, val_dataloader, test_dataloader,\
-                                               input_channel, num_epochs, val_every_epoch, learning_rate, device)
+                                               input_channel, num_epochs, val_every_epoch, best_lrs, device)
 
 
     # Plot and save the plot using the saved data

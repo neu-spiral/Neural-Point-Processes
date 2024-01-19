@@ -164,4 +164,4 @@ lightning_logs/
 data/
 checkpoints/
 apikey.txt
-
+processing/*.csv

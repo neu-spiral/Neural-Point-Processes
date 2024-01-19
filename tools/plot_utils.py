@@ -106,10 +106,10 @@ def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name
     ci_test_loss_npp_false = 1.96 * np.std(test_loss_npp_false, axis=1) / np.sqrt(len(test_loss_npp_false))
 
     # Plot mean and confidence intervals for NPP=True
-    plt.plot(sigmas, mean_test_loss_npp_true, marker='o', label='NPP=True', color='blue')
+    plt.plot(sigmas, mean_test_loss_npp_true, marker='o', label='NPP', color='blue')
 
     # Plot mean and confidence intervals for duplicated NPP=False
-    plt.plot(sigmas, mean_test_loss_npp_false, color='red', linestyle='--', label='NPP=False')
+    plt.plot(sigmas, mean_test_loss_npp_false, color='red', linestyle='--', label='MSE')
 
     # Fill between for NPP=True with blue color
     plt.fill_between(sigmas, mean_test_loss_npp_true - ci_test_loss_npp_true, mean_test_loss_npp_true + ci_test_loss_npp_true, color='blue', alpha=0.2)
