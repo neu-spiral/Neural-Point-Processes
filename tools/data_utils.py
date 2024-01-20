@@ -192,15 +192,15 @@ def count_pins(binary_image, pins, radius):
 #save data
 def save_data(images, pins, labels, output_directory):
     """
-    Save binary images, pin coordinates, and count labels to CSV, and save images to files in the specified directory.
+    Save multi-channel images, pin coordinates, and count labels to CSV, and save images to files in the specified directory.
 
     Args:
-    images (list): List of binary images.
+    images (list): List of multi-channel images.
     pins (list): List of lists of (x, y) coordinate tuples representing pin locations.
     labels (list): List of labels counted at the pin locations.
     output_directory (str): The directory where data, images, and count labels will be saved.
 
-    This function saves binary images, pin coordinates, and count labels to CSV files, and also saves the images as files in the 'images' subdirectory within the 'output_directory'. Each image is saved as a numbered PNG file (e.g., "0.png", "1.png") within the 'images' subdirectory. The CSV file 'pins.csv' contains columns for image filenames, pin coordinates, and count labels.
+    This function saves multi-channel images, pin coordinates, and count labels to CSV files, and also saves the images as files in the 'images' subdirectory within the 'output_directory'. Each image is saved as a numbered PNG or NPY file (e.g., "0.png", "1.npy") within the 'images' subdirectory. The CSV file 'pins.csv' contains columns for image filenames, pin coordinates, and count labels.
 
     Example usage:
     save_data(images, pins, labels, 'output_data')
@@ -214,7 +214,7 @@ def save_data(images, pins, labels, output_directory):
     # Create subdirectories for images and count labels
     os.makedirs(images_directory, exist_ok=True)
 
-    # Save images as "0.png", "1.png", etc., and dump data to CSV
+    # Save images as "0.png" or "0.npy", "1.png" or "1.npy", etc., and dump data to CSV
     with open(os.path.join(output_directory, 'pins.csv'), 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
 
@@ -222,14 +222,21 @@ def save_data(images, pins, labels, output_directory):
         csv_writer.writerow(['image', 'pins', 'outputs'])
 
         for i, (image, image_pins, label) in enumerate(zip(images, pins, labels)):
-            # Save the image as "i.png" in the images subdirectory
-            image_filename = os.path.join(images_directory, f"{i}.png")
-            image = image.detach().cpu().numpy()
-            im = Image.fromarray((image * 255).astype('uint8'))
-            im.save(image_filename)
+            # Save the image as "i.png" or "i.npy" in the images subdirectory
+            image_filename = os.path.join(images_directory, f"{i}")
+            if image.ndim == 2:
+                # For single-channel images, save as PNG
+                image_filename += ".png"
+                image = image.detach().cpu().numpy()
+                im = Image.fromarray((image * 255).astype('uint8'))
+                im.save(image_filename)
+            elif image.ndim == 3:
+                # For multi-channel images, save as NPY
+                image_filename += ".npy"
+                np.save(image_filename, image.detach().cpu().numpy())
 
             # Write data to CSV
-            csv_writer.writerow([f"{i}.png", image_pins, label])
+            csv_writer.writerow([os.path.basename(image_filename), image_pins, label])
 
     print("Data and images have been saved to the CSV and image files.")
     
@@ -259,7 +266,11 @@ class PinDataset(Dataset):
 
         img_name = os.path.join(self.root_dir,
                                 self.pins_frame.iloc[idx, 0])
-        image = io.imread(img_name)
+                # Check the file extension
+        if img_name.endswith('.npy'):
+            image = np.load(img_name)
+        else:
+            image = io.imread(img_name)
         pins = np.asarray(eval(self.pins_frame.iloc[idx, 1]))
         outputs = np.asarray(eval(self.pins_frame.iloc[idx, 2]))
 
@@ -282,7 +293,7 @@ class ToTensor(object):
         # torch image: C x H x W
         if len(image.shape) == 2:
             image = image.reshape(image.shape[0], image.shape[1], 1)
-        image = image.transpose((2, 0, 1))
+            image = image.transpose((2, 0, 1))
         image = image/image.max()
         return {'image': torch.from_numpy(image),
                 'pins': torch.from_numpy(pins),
@@ -312,9 +323,9 @@ def custom_collate_fn(batch):
         'outputs': outputs}
 
 
-def save_data(data, filename):
+def save_loss(data, filename):
     np.save(filename, data)
 
 # Function to load data
-def load_data(filename):
+def load_loss(filename):
     return np.load(filename)
