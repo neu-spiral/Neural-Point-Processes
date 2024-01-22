@@ -20,7 +20,7 @@ class EarlyStoppingCallback:
         return False  # Continue training
     
     
-def train_model(model, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping):
+def train_model(model, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id):
     train_losses = []  # To track train loss for plotting
     val_losses = []    # To track validation loss for plotting
     best_val_loss = float('inf') 
@@ -61,7 +61,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, num_epoc
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 # Save the model
-                torch.save(model.state_dict(), './history/best_model.pth')
+                torch.save(model.state_dict(), f'./history/best_model{experiment_id}.pth')
 
             if early_stopping(epoch, val_loss):
                 break  # Stop training early
@@ -69,7 +69,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, num_epoc
             val_losses.append(val_loss)
 
     # Reload the best model after training
-    model.load_state_dict(torch.load('./history/best_model.pth'))
+    model.load_state_dict(torch.load(f'./history/best_model{experiment_id}.pth'))
 
     return model, train_losses, val_losses
 

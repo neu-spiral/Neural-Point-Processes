@@ -48,7 +48,7 @@ class NPPLoss(nn.Module):
         self.identity = identity
         self.sigma = sigma  # Add sigma as an instance variable
     
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=128)
     def compute_kernel(self, pins):
         matrix_list = []
         for i in range(len(pins)):
@@ -73,5 +73,6 @@ class NPPLoss(nn.Module):
                     (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]]).t(),
                     torch.matmul(matrix_list[i], y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]])
                 )
+            matrix_list = []
         loss /= len(y_true)
         return loss
