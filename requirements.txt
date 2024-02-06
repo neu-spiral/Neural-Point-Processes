@@ -7,7 +7,6 @@ pytorch_lightning
 rasterio
 scikit-learn
 scikit-image
-torch
 torch_lr_finder
 torchmetrics
 torchvision
