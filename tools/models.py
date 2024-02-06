@@ -203,8 +203,7 @@ class UNet(nn.Module):
         return nn.Sequential(
             nn.Linear(dim_in, dim_out),
             nn.SiLU(),
-            nn.Linear(dim_out, dim_out)
-        )
+            nn.Linear(dim_out, dim_out))
     
 
 # DDPM class
