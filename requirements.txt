@@ -10,3 +10,4 @@ scikit-image
 torch_lr_finder
 torchmetrics
 torchvision
+jupyter
