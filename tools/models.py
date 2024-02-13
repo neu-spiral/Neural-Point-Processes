@@ -77,9 +77,9 @@ def _make_te(self, dim_in, dim_out):
 
 
 class UNet(nn.Module):
-    def __init__(self, n_steps=1000, time_emb_dim=100):
+    def __init__(self, input_channels=1, dims=[10,20,40,80], n_steps=1000, time_emb_dim=100):
         super(UNet, self).__init__()
-
+        self.output_channels = input_channels
         # Sinusoidal embedding
         self.time_embed = nn.Embedding(n_steps, time_emb_dim)
         self.time_embed.weight.data = sinusoidal_embedding(n_steps, time_emb_dim)
@@ -88,71 +88,71 @@ class UNet(nn.Module):
         # First half
         self.te1 = self._make_te(time_emb_dim, 1)
         self.b1 = nn.Sequential(
-            MyBlock((1, 28, 28), 1, 10),
-            MyBlock((10, 28, 28), 10, 10),
-            MyBlock((10, 28, 28), 10, 10)
+            MyBlock((input_channels, 28, 28), input_channels, dims[0]),
+            MyBlock((dims[0], 28, 28), dims[0], dims[0]),
+            MyBlock((dims[0], 28, 28), dims[0], dims[0])
         )
-        self.down1 = nn.Conv2d(10, 10, 4, 2, 1)
+        self.down1 = nn.Conv2d(dims[0], dims[0], 4, 2, 1)
 
-        self.te2 = self._make_te(time_emb_dim, 10)
+        self.te2 = self._make_te(time_emb_dim, dims[0])
         self.b2 = nn.Sequential(
-            MyBlock((10, 14, 14), 10, 20),
-            MyBlock((20, 14, 14), 20, 20),
-            MyBlock((20, 14, 14), 20, 20)
+            MyBlock((dims[0], 14, 14), dims[0], dims[1]),
+            MyBlock((dims[1], 14, 14), dims[1], dims[1]),
+            MyBlock((dims[1], 14, 14), dims[1], dims[1])
         )
-        self.down2 = nn.Conv2d(20, 20, 4, 2, 1)
+        self.down2 = nn.Conv2d(dims[1], dims[1], 4, 2, 1)
 
-        self.te3 = self._make_te(time_emb_dim, 20)
+        self.te3 = self._make_te(time_emb_dim, dims[1])
         self.b3 = nn.Sequential(
-            MyBlock((20, 7, 7), 20, 40),
-            MyBlock((40, 7, 7), 40, 40),
-            MyBlock((40, 7, 7), 40, 40)
+            MyBlock((dims[1], 7, 7), dims[1], dims[2]),
+            MyBlock((dims[2], 7, 7), dims[2], dims[2]),
+            MyBlock((dims[2], 7, 7), dims[2], dims[2])
         )
         self.down3 = nn.Sequential(
-            nn.Conv2d(40, 40, 2, 1),
+            nn.Conv2d(dims[2], dims[2], 2, 1),
             nn.SiLU(),
-            nn.Conv2d(40, 40, 4, 2, 1)
+            nn.Conv2d(dims[2], dims[2], 4, 2, 1)
         )
 
         # Bottleneck
-        self.te_mid = self._make_te(time_emb_dim, 40)
+        self.te_mid = self._make_te(time_emb_dim, dims[2])
         self.b_mid = nn.Sequential(
-            MyBlock((40, 3, 3), 40, 20),
-            MyBlock((20, 3, 3), 20, 20),
-            MyBlock((20, 3, 3), 20, 40)
+            MyBlock((dims[2], 3, 3), dims[2], dims[1]),
+            MyBlock((dims[1], 3, 3), dims[1], dims[1]),
+            MyBlock((dims[1], 3, 3), dims[1], dims[2])
         )
 
         # Second half
         self.up1 = nn.Sequential(
-            nn.ConvTranspose2d(40, 40, 4, 2, 1),
+            nn.ConvTranspose2d(dims[2], dims[2], 4, 2, 1),
             nn.SiLU(),
-            nn.ConvTranspose2d(40, 40, 2, 1)
+            nn.ConvTranspose2d(dims[2], dims[2], 2, 1)
         )
 
-        self.te4 = self._make_te(time_emb_dim, 80)
+        self.te4 = self._make_te(time_emb_dim, dims[3])
         self.b4 = nn.Sequential(
-            MyBlock((80, 7, 7), 80, 40),
-            MyBlock((40, 7, 7), 40, 20),
-            MyBlock((20, 7, 7), 20, 20)
+            MyBlock((dims[3], 7, 7), dims[3], dims[2]),
+            MyBlock((dims[2], 7, 7), dims[2], dims[1]),
+            MyBlock((dims[1], 7, 7), dims[1], dims[1])
         )
 
-        self.up2 = nn.ConvTranspose2d(20, 20, 4, 2, 1)
-        self.te5 = self._make_te(time_emb_dim, 40)
+        self.up2 = nn.ConvTranspose2d(dims[1], dims[1], 4, 2, 1)
+        self.te5 = self._make_te(time_emb_dim, dims[2])
         self.b5 = nn.Sequential(
-            MyBlock((40, 14, 14), 40, 20),
-            MyBlock((20, 14, 14), 20, 10),
-            MyBlock((10, 14, 14), 10, 10)
+            MyBlock((dims[2], 14, 14), dims[2], dims[1]),
+            MyBlock((dims[1], 14, 14), dims[1], dims[0]),
+            MyBlock((dims[0], 14, 14), dims[0], dims[0])
         )
 
-        self.up3 = nn.ConvTranspose2d(10, 10, 4, 2, 1)
-        self.te_out = self._make_te(time_emb_dim, 20)
+        self.up3 = nn.ConvTranspose2d(dims[0], dims[0], 4, 2, 1)
+        self.te_out = self._make_te(time_emb_dim, dims[1])
         self.b_out = nn.Sequential(
-            MyBlock((20, 28, 28), 20, 10),
-            MyBlock((10, 28, 28), 10, 10),
-            MyBlock((10, 28, 28), 10, 10, normalize=False)
+            MyBlock((dims[1], 28, 28), dims[1], dims[0]),
+            MyBlock((dims[0], 28, 28), dims[0], dims[0]),
+            MyBlock((dims[0], 28, 28), dims[0], dims[0], normalize=False)
         )
 
-        self.conv_out = nn.Conv2d(10, 1, 3, 1, 1)
+        self.conv_out = nn.Conv2d(dims[0], output_channels, 3, 1, 1)
 
     def forward(self, x, t):
         # x is (N, 2, 28, 28) (image with positional embedding stacked on channel dimension)
