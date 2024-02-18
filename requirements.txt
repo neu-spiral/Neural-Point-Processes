@@ -3,11 +3,11 @@ monai
 numpy
 pandas
 Pillow
-pytorch_lightning
+pytorch-lightning
 rasterio
 scikit-learn
 scikit-image
-torch_lr_finder
+torch-lr-finder
 torchmetrics
 torchvision
 jupyter
