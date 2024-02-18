@@ -11,3 +11,5 @@ torch-lr-finder
 torchmetrics
 torchvision
 jupyter
+imageio
+einops

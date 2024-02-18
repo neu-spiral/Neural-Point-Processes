@@ -3,7 +3,9 @@ from tools.data_utils import count_pins, gen_mesh_pins
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-
+import torch
+import imageio
+import einops
 
 def visualize_pins(image, pins, color_map='viridis'):
     """
