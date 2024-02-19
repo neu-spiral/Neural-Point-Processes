@@ -13,3 +13,8 @@ torchvision
 jupyter
 imageio
 einops
+geopandas
+shapely
+descartes
+seaborn
+plotly
