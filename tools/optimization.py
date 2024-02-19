@@ -1,5 +1,6 @@
 import torch
-from tools.losses import NPPLoss
+from tools.losses import NPPLoss, gaussian_kernel_matrix
+import scipy
 
 class EarlyStoppingCallback:
     def __init__(self, patience=10, min_delta=0.001):
@@ -74,7 +75,33 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, num_epoc
     return model, train_losses, val_losses
 
 
-def evaluate_model(model, dataloader, input_channel, device):
+def GP_prediction(P1, y1, mu1, P2, mu2, kernel_func, sigma):
+    """
+    Calculate the posterior mean and covariance matrix for y2
+    based on the corresponding input P2, the observations (y1, P1), 
+    and the prior kernel function.
+    P1 P2 shape: nx2
+    y mu shape: n,
+    """
+    P1 = P1.float()
+    P2 = P2.float()
+    # Kernel of the observations
+    Cov11 = kernel_func(P1, P1, sigma)
+    # Kernel of observations vs to-predict
+    Cov12 = kernel_func(P1, P2, sigma)
+    Cov22 = kernel_func(P2, P2, sigma)
+    # Solve
+
+    solved = torch.linalg.solve(Cov11, Cov12).T
+    # Compute posterior mean
+    mu2_new = solved @ (y1-mu1)+mu2
+    
+    # Compute the posterior covariance
+    Cov22_new = Cov22 - (solved @ Cov12)
+    return mu2_new, Cov22_new
+
+
+def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_label_GP=False, partial_percent=0, kernel_func=gaussian_kernel_matrix):
     model.eval()
     total_loss = 0.0
     criterion = NPPLoss(identity=True).to(device)
@@ -84,8 +111,30 @@ def evaluate_model(model, dataloader, input_channel, device):
             x_test = batch['image'][:, :input_channel, :, :].to(device)
             p_test = [tensor.to(device) for tensor in batch['pins']]
             y_test = [tensor.to(device) for tensor in batch['outputs']]
-
             test_outputs = model(x_test.float())
+            
+            if partial_percent > 0 and partial_percent < 1:
+                # Determine the number of samples to keep based on partial_percent
+                
+                for i in range(len(x_test)):            
+                    num_samples = int(len(p_test[i]) * partial_percent)
+                    x_sample = x_test[i]
+                    p_sample = p_test[i][num_samples:]
+                    y_sample = y_test[i][num_samples:]
+                    mu_sample = (test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]]
+                        
+                    if partial_label_GP:
+                        x_ref = x_test[i]
+                        p_ref = p_test[i][:num_samples]
+                        y_ref = y_test[i][:num_samples]
+                        mu_ref = (test_outputs[i].squeeze())[p_ref[:, 0], p_ref[:, 1]]
+                        test_outputs_new, cov = GP_prediction(p_ref, y_ref, mu_ref, p_sample, mu_sample, gaussian_kernel_matrix, sigma)
+                        test_outputs[i][:, p_sample[:, 0], p_sample[:, 1]] = test_outputs_new
+                        
+                    y_test[i] = y_sample
+                    p_test[i] = p_sample
+                        
+            
             loss = criterion(y_test, test_outputs, p_test)
 
             total_loss += loss.item()
