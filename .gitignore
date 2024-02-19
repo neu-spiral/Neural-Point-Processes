@@ -166,6 +166,7 @@ cython_debug/
 lightning_logs/
 data/
 checkpoints/
+history/
 apikey.txt
 results/
 datasets/
