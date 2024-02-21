@@ -379,7 +379,7 @@ def main():
             best_lr_NPP = lr_finder_NPP.find_best_lr()
             best_lrs.append((sigma, best_lr_NPP))
             print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
-    
+        config['best_lrs'] = best_lrs
         # Run and save the pipeline data
         loss_vs_sigma_data, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,\
                                                    input_channel, num_epochs, val_every_epoch, best_lrs, config, num_runs, device)
