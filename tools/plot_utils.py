@@ -96,12 +96,16 @@ def plot_loss(train_losses, val_losses, val_every_epoch, NPP, sigma, dataset, le
     
 def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name="Auto encoder", results_dir = './results'):
     # Unpack the data
-    test_loss_npp_true, test_loss_npp_false = loss_vs_sigma_data
+    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false = loss_vs_sigma_data
     test_loss_npp_false = [test_loss_npp_false for i in range(len(sigmas))]
 
     # Calculate mean and confidence intervals for NPP=True runs
     mean_test_loss_npp_true = np.mean(test_loss_npp_true, axis=0)
     ci_test_loss_npp_true = 1.96 * np.std(test_loss_npp_true, axis=0) / np.sqrt(len(test_loss_npp_true))
+    
+    # Calculate mean and confidence intervals for GP NPP=True runs
+    mean_GP_test_loss_npp_true = np.mean(GP_test_loss_npp_true, axis=0)
+    ci_GP_test_loss_npp_true = 1.96 * np.std(GP_test_loss_npp_true, axis=0) / np.sqrt(len(GP_test_loss_npp_true))
 
     # Duplicate NPP=False values for plotting
     mean_test_loss_npp_false = np.mean(test_loss_npp_false, axis=1)
@@ -109,12 +113,18 @@ def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name
 
     # Plot mean and confidence intervals for NPP=True
     plt.plot(sigmas, mean_test_loss_npp_true, marker='o', label='NPP', color='blue')
+    
+    # Plot mean and confidence intervals for GP NPP=True
+    plt.plot(sigmas, GP_mean_test_loss_npp_true, marker='*', label='GP NPP', color='yellow')
 
     # Plot mean and confidence intervals for duplicated NPP=False
     plt.plot(sigmas, mean_test_loss_npp_false, color='red', linestyle='--', label='MSE')
 
     # Fill between for NPP=True with blue color
     plt.fill_between(sigmas, mean_test_loss_npp_true - ci_test_loss_npp_true, mean_test_loss_npp_true + ci_test_loss_npp_true, color='blue', alpha=0.2)
+    
+    # Fill between for GP NPP=True with blue color
+    plt.fill_between(sigmas, mean_GP_test_loss_npp_true - ci_GP_test_loss_npp_true, mean_FP_test_loss_npp_true + ci_FP_test_loss_npp_true, color='yellow', alpha=0.2)
 
     # Fill between for NPP=False with red color
     plt.fill_between(sigmas, mean_test_loss_npp_false - ci_test_loss_npp_false, mean_test_loss_npp_false + ci_test_loss_npp_false, color='red', alpha=0.2)
