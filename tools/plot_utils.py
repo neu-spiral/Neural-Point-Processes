@@ -115,7 +115,7 @@ def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name
     plt.plot(sigmas, mean_test_loss_npp_true, marker='o', label='NPP', color='blue')
     
     # Plot mean and confidence intervals for GP NPP=True
-    plt.plot(sigmas, GP_mean_test_loss_npp_true, marker='*', label='GP NPP', color='yellow')
+    plt.plot(sigmas, mean_GP_test_loss_npp_true, marker='*', label='GP NPP', color='yellow')
 
     # Plot mean and confidence intervals for duplicated NPP=False
     plt.plot(sigmas, mean_test_loss_npp_false, color='red', linestyle='--', label='MSE')
@@ -124,7 +124,7 @@ def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name
     plt.fill_between(sigmas, mean_test_loss_npp_true - ci_test_loss_npp_true, mean_test_loss_npp_true + ci_test_loss_npp_true, color='blue', alpha=0.2)
     
     # Fill between for GP NPP=True with blue color
-    plt.fill_between(sigmas, mean_GP_test_loss_npp_true - ci_GP_test_loss_npp_true, mean_FP_test_loss_npp_true + ci_FP_test_loss_npp_true, color='yellow', alpha=0.2)
+    plt.fill_between(sigmas, mean_GP_test_loss_npp_true - ci_GP_test_loss_npp_true, mean_GP_test_loss_npp_true + ci_GP_test_loss_npp_true, color='yellow', alpha=0.2)
 
     # Fill between for NPP=False with red color
     plt.fill_between(sigmas, mean_test_loss_npp_false - ci_test_loss_npp_false, mean_test_loss_npp_false + ci_test_loss_npp_false, color='red', alpha=0.2)
