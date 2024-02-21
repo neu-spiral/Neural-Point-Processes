@@ -42,7 +42,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, num_epoc
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        total_loss /= len(train_dataloader.dataset)
+        total_loss /= len(train_dataloader)
         # Print train loss
         train_losses.append(total_loss)
 
@@ -58,7 +58,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, num_epoc
                     val_outputs = model(x_val.float())
                     val_loss += criterion(y_val, val_outputs, p_val).item()
 
-            val_loss /= len(val_dataloader.dataset)  # Average validation loss
+            val_loss /= len(val_dataloader)  # Average validation loss
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 # Save the model
@@ -139,5 +139,5 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
 
             total_loss += loss.item()
 
-    total_loss /= len(dataloader.dataset)
+    total_loss /= len(dataloader)
     return total_loss
