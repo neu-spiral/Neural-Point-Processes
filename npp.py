@@ -179,9 +179,9 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
 
         autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
         
-        optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count])
+        optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
         model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, num_epochs,\
-                                                      val_every_epoch, learning_rates[count], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_MSE, sigma=0)
+                                                      val_every_epoch, learning_rates[count][1], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_MSE, sigma=0)
         if best_val_loss < best_val_loss_MSE:
             best_val_loss_MSE = best_val_loss
 
@@ -195,9 +195,9 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
             early_stopping = EarlyStoppingCallback(patience=5, min_delta=0.001)
             criterion = NPPLoss(identity=False, sigma=sigma).to(device)
             autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
-            optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count])
+            optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
             model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, num_epochs,\
-                                                          val_every_epoch, learning_rates[count], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_NPP, sigma=sigma)
+                                                          val_every_epoch, learning_rates[count][1], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_NPP, sigma=sigma)
             if best_val_loss < best_val_loss_NPP:
                 best_val_loss_NPP = best_val_loss
                 best_sigma_NPP = sigma
@@ -245,16 +245,16 @@ def parse_args():
 
     # Datasets and hyperparameters
     parser.add_argument("--dataset", type=str, default="PinMNIST", help="Dataset name")
-    parser.add_argument("--features_extracted", type=bool, default=False, help="Use of data augmentated by DDPM model")
+    parser.add_argument("--features_extracted", default=False, action="store_true", help="Use of data augmentated by DDPM model")
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
-    parser.add_argument("--mesh", type=bool, default=False, help="Value for 'mesh'")
+    parser.add_argument("--mesh", default=False, action="store_true", help="Value for 'mesh'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
-    parser.add_argument("--fixed_pins", type=bool, default=True, help="Value for 'fixed_pins'")
+    parser.add_argument("--fixed_pins", default=False, action="store_true", help="Value for 'fixed_pins'")
     parser.add_argument("--r", type=int, default=3, help="Value for 'r'")
     parser.add_argument("--d1", type=int, default=28, help="Value for 'd1'")
     parser.add_argument("--d2", type=int, default=28, help="Value for 'd2'")
-    parser.add_argument("--partial_label", type=float, default=1.00, help="Value for partially showing the labels (0 to 1 range)")
+    parser.add_argument("--partial_percent", type=float, default=1.00, help="Value for partially showing the labels (0 to 1 range)")
 
     # Hyperparameters
     parser.add_argument("--num_epochs", type=int, default=200, help="Number of epochs")
@@ -287,7 +287,7 @@ def main():
 
      # Choose datasets
     dataset = args.dataset 
-    feature_extracted = args.feature_extracted
+    feature_extracted = args.features_extracted
     n = args.n
     mesh = args.mesh
     d = args.d
@@ -295,7 +295,7 @@ def main():
     fixed_pins = args.fixed_pins
     r = args.r
     d1,d2 = args.d1, args.d2
-    partial_percent = args.partial_label
+    partial_percent = args.partial_percent
 
     # Set your hyperparameters
     num_epochs = args.num_epochs
@@ -375,7 +375,7 @@ def main():
         for sigma in sigmas:
             criterion_NPP = NPPLoss(identity=False, sigma=sigma).to(device)
             lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
-            lr_finder_NPP.find_lr(train_loader, start_lr=1e-4, end_lr=1, num_iter=10)
+            lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
             best_lr_NPP = lr_finder_NPP.find_best_lr()
             best_lrs.append((sigma, best_lr_NPP))
             print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
