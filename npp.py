@@ -160,6 +160,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     best_val_loss_MSE = float('inf')
     best_val_loss_NPP = float('inf')
     best_sigma_NPP = float('inf')
+    config['experiment_id'] = experiment_id
 
     # Create storage directory and store the experiment configuration
     if not os.path.exists(f'./history/{experiment_id}'):
