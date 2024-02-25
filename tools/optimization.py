@@ -21,12 +21,12 @@ class EarlyStoppingCallback:
         return False  # Continue training
     
     
-def train_model(model, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id):
+def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id):
     train_losses = []  # To track train loss for plotting
     val_losses = []    # To track validation loss for plotting
     best_val_loss = float('inf') 
 
-    for epoch in range(num_epochs):
+    for epoch in range(epochs):
         total_loss = 0
         for batch in train_dataloader:
             x_train = batch['image'][:, :input_channel, :, :].to(device)

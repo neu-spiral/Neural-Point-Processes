@@ -17,12 +17,12 @@ import argparse
 import time
 from tools.models import *
 
-def train_model(model, train_dataloader, val_dataloader, input_channel, num_epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
+def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
     train_losses = []  # To track train loss for plotting
     val_losses = []    # To track validation loss for plotting
     best_val_loss = float('inf')
 
-    for epoch in range(num_epochs):
+    for epoch in range(epochs):
         total_loss = 0
         for batch in train_dataloader:
             x_train = batch['image'][:, :input_channel, :, :].to(device)
@@ -151,7 +151,7 @@ def custom_collate_fn(batch):
         'outputs': outputs}
 
 def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, 
-                    test_loader, input_channel, num_epochs, val_every_epoch, learning_rates, config, device, num_runs=3):
+                    test_loader, input_channel, epochs, val_every_epoch, learning_rates, config, device, num_runs=3):
     GP_test_losses_npp_true = []
     test_losses_npp_true = []
     test_losses_npp_false= []
@@ -181,7 +181,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
         
         optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
-        model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, num_epochs,\
+        model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, epochs,\
                                                       val_every_epoch, learning_rates[count][1], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_MSE, sigma=0)
         if best_val_loss < best_val_loss_MSE:
             best_val_loss_MSE = best_val_loss
@@ -197,7 +197,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
             criterion = NPPLoss(identity=False, sigma=sigma).to(device)
             autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
             optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
-            model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, num_epochs,\
+            model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, epochs,\
                                                           val_every_epoch, learning_rates[count][1], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_NPP, sigma=sigma)
             if best_val_loss < best_val_loss_NPP:
                 best_val_loss_NPP = best_val_loss
@@ -216,9 +216,9 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
 
     
 # Function to run the pipeline and save data
-def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, num_epochs, val_every_epoch, learning_rates, config, num_runs, device):
+def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, epochs, val_every_epoch, learning_rates, config, num_runs, device):
     # Run the pipeline
-    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, best_sigma_NPP, experiment_id = run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, num_epochs, val_every_epoch, learning_rates, config, device, num_runs)
+    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, best_sigma_NPP, experiment_id = run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, epochs, val_every_epoch, learning_rates, config, device, num_runs)
     partial_percent = config['partial_percent']
     # Run final testing
     autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
@@ -246,26 +246,23 @@ def parse_args():
 
     # Datasets and hyperparameters
     parser.add_argument("--dataset", type=str, default="PinMNIST", help="Dataset name")
-    parser.add_argument("--features_extracted", default=False, action="store_true", help="Use of data augmentated by DDPM model")
+    parser.add_argument("feature", type=str, default="AE", help="feature from 'DDPM' or 'DDPM'")
+    parser.add_argument("--mode", type=str, default="mesh", help="mode for 'mesh' or 'random'")
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
-    parser.add_argument("--mesh", default=False, action="store_true", help="Value for 'mesh'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
-    parser.add_argument("--fixed_pins", default=False, action="store_true", help="Value for 'fixed_pins'")
-    parser.add_argument("--r", type=int, default=3, help="Value for 'r'")
-    parser.add_argument("--d1", type=int, default=28, help="Value for 'd1'")
-    parser.add_argument("--d2", type=int, default=28, help="Value for 'd2'")
     parser.add_argument("--partial_percent", type=float, default=1.00, help="Value for partially showing the labels (0 to 1 range)")
+    parser.add_argument("--r", type=int, default=3, help="Value for 'r'")
 
     # Hyperparameters
-    parser.add_argument("--num_epochs", type=int, default=200, help="Number of epochs")
+    parser.add_argument("--epochs", type=int, default=200, help="Number of epochs")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--learning_rate", type=float, default=0.1, help="Learning rate")
     parser.add_argument("--val_every_epoch", type=int, default=5, help="Number of epochs in between validations")
-    parser.add_argument("--num_runs", type=int, default=1, help="Number of different trainings to do per model and sigma")
+    parser.add_argument("--num_runs", type=int, default=3, help="Number of different trainings to do per model and sigma")
 
     # List of sigma values
-    parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2], help="List of sigma values to test")
+    parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2, 5], help="List of sigma values to test")
 
     # Kernel sizes
     parser.add_argument("--num_encoder", nargs="+", type=int, default=[32, 16], help="List of encoder kernel sizes")
@@ -293,13 +290,11 @@ def main():
     mesh = args.mesh
     d = args.d
     n_pins = args.n_pins
-    fixed_pins = args.fixed_pins
     r = args.r
-    d1,d2 = args.d1, args.d2
     partial_percent = args.partial_percent
 
     # Set your hyperparameters
-    num_epochs = args.num_epochs
+    epochs = args.epochs
     batch_size = args.batch_size
     sigmas = args.sigmas  # Set the sigma values you want to test
     num_kernels_encoder = args.num_encoder
@@ -323,13 +318,13 @@ def main():
         if mesh:
             data_folder = f"./data/{folder}/{n}images_mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
         else:
-            data_folder = f"./data/{folder}/{n}images_random_fixed{fixed_pins}_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
+            data_folder = f"./data/{folder}/{n}images_random_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
     
     if dataset == "Synthetic":
         if mesh:
-            data_folder = f"./data/{folder}/{n}images_{d1}by{d2}pixels_{d}_distanced_grid_pins_{seed}seed/"
+            data_folder = f"./data/{folder}/{n}images_{d}_distanced_grid_pins_{seed}seed/"
         else:
-            data_folder = f"./data/{folder}/{n}images_{d1}by{d2}pixels_upto{n_pins}pins_{seed}seed/"
+            data_folder = f"./data/{folder}/{n}images_upto{n_pins}pins_{seed}seed/"
 
     transform = transforms.Compose([
         ToTensor(),         # Convert to tensor (as you were doing)
@@ -383,7 +378,7 @@ def main():
         config['best_lrs'] = best_lrs
         # Run and save the pipeline data
         loss_vs_sigma_data, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,\
-                                                   input_channel, num_epochs, val_every_epoch, best_lrs, config, num_runs, device)
+                                                   input_channel, epochs, val_every_epoch, best_lrs, config, num_runs, device)
         
         
         # Plot and save the plot using the saved data
