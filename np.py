@@ -66,10 +66,10 @@ class NPLRFinder:
     def find_best_lr(self, skip_start=3, skip_end=3):
         # Find the index of the minimum loss in the specified range
         min_loss_index = skip_start + np.argmin(self.history['loss'][skip_start:-skip_end])
-
         # Output the learning rate corresponding to the minimum loss
         best_lr = self.history['lr'][min_loss_index]
         return best_lr
+    
     def _loss(self, p_y_pred, y_target, q_target, q_context):
         log_likelihood = p_y_pred.log_prob(y_target).mean(dim=0).sum()
         kl = kl_divergence(q_target, q_context).mean(dim=0).sum()
@@ -117,8 +117,8 @@ def run_pipeline_ci(train_loader, val_loader,
         np_trainer = NeuralProcessTrainer(device, model, optimizer, print_freq=100)
         
         if best_val_loss < best_val_loss_NPP:
-            best_val_loss_NPP = best_val_loss
-            best_sigma_NPP = sigma
+            best_val_loss_NP = best_val_loss
+            
 
         test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=False, partial_percent=partial_percent)
         GP_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=True, partial_percent=partial_percent)
@@ -138,14 +138,11 @@ def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, trai
     GP_test_loss_npp_true, test_loss_npp_true, experiment_id = run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, epochs, val_every_epoch, learning_rates, config, device, num_runs)
     partial_percent = config['partial_percent']
     # Run final testing
-    autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+    model = NeuralProcessImg(img_size, r_dim, z_dim, h_dim).to(device)
     # MSE
-    autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
-    best_MSE_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=False, partial_percent=partial_percent)
-    # NPP
-    autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_NPP.pth'))
-    best_NPP_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=False, partial_percent=partial_percent)
-    GP_best_NPP_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=True, partial_percent=partial_percent)
+    model.load_state_dict(torch.load(f'./history/{experiment_id}/model_NP.pth'))
+    best_NP_test_loss = evaluate_model(model, test_loader, input_channel, device, partial_label_GP=False, partial_percent=partial_percent)
+    GP_best_NP_test_loss = evaluate_model(model, test_loader, input_channel, device, partial_label_GP=True, partial_percent=partial_percent)
     print("start saving!")
     # Save the data
     save_loss(test_loss_npp_true, f'./history/{experiment_id}/test_loss_npp_true.npy')
