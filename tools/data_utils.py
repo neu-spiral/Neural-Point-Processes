@@ -73,6 +73,9 @@ def gen_mesh_pins(image, d):
     for y in range(0, height, d):
         for x in range(0, width, d):
             mesh_pins.append((x, y))
+    
+    # Randomize pins order
+    mesh_pins = np.random.permutation(mesh_pins)
 
     return mesh_pins
 
