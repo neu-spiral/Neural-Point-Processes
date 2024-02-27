@@ -145,7 +145,7 @@ def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name
     plt.savefig(filepath)
 
     # Show the plot
-    plt.show()
+    #plt.show()
     
 
 def show_images(images, title=""):

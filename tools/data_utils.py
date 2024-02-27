@@ -190,7 +190,7 @@ def count_pins(binary_image, pins, radius):
 
 
 #save data
-def save_data(images, pins, labels, output_directory):
+def save_data(images, pins, labels, images_directory, output_directory):
     """
     Save multi-channel images, pin coordinates, and count labels to CSV, and save images to files in the specified directory.
 
@@ -198,7 +198,8 @@ def save_data(images, pins, labels, output_directory):
     images (list): List of multi-channel images.
     pins (list): List of lists of (x, y) coordinate tuples representing pin locations.
     labels (list): List of labels counted at the pin locations.
-    output_directory (str): The directory where data, images, and count labels will be saved.
+    images_directory (str): The directory where images will be saved.
+    output_directory (str): The directory where data, and count labels will be saved.
 
     This function saves multi-channel images, pin coordinates, and count labels to CSV files, and also saves the images as files in the 'images' subdirectory within the 'output_directory'. Each image is saved as a numbered PNG or NPY file (e.g., "0.png", "1.npy") within the 'images' subdirectory. The CSV file 'pins.csv' contains columns for image filenames, pin coordinates, and count labels.
 
@@ -209,7 +210,7 @@ def save_data(images, pins, labels, output_directory):
     os.makedirs(output_directory, exist_ok=True)
 
     # Define subdirectories for images and count labels
-    images_directory = os.path.join(output_directory, 'images')
+    images_directory = os.path.join(images_directory, 'images')
 
     # Create subdirectories for images and count labels
     os.makedirs(images_directory, exist_ok=True)
@@ -229,11 +230,13 @@ def save_data(images, pins, labels, output_directory):
                 image_filename += ".png"
                 image = image.detach().cpu().numpy()
                 im = Image.fromarray((image * 255).astype('uint8'))
-                im.save(image_filename)
+                if not os.path.exists(image_filename):
+                    im.save(image_filename)
             elif image.ndim == 3:
                 # For multi-channel images, save as NPY
                 image_filename += ".npy"
-                np.save(image_filename, image.detach().cpu().numpy())
+                if not os.path.exists(image_filename):
+                    np.save(image_filename, image.detach().cpu().numpy())
 
             # Write data to CSV
             csv_writer.writerow([os.path.basename(image_filename), image_pins, label])

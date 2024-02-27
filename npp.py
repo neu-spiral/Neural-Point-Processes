@@ -193,7 +193,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         count += 1
         # Run LR Finder for different sigma values
         for sigma in sigmas:
-            early_stopping = EarlyStoppingCallback(patience=5, min_delta=0.001)
+            early_stopping = EarlyStoppingCallback(patience=10, min_delta=0.001)
             criterion = NPPLoss(identity=False, sigma=sigma).to(device)
             autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
             optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
@@ -246,7 +246,7 @@ def parse_args():
 
     # Datasets and hyperparameters
     parser.add_argument("--dataset", type=str, default="PinMNIST", help="Dataset name")
-    parser.add_argument("feature", type=str, default="AE", help="feature from 'DDPM' or 'DDPM'")
+    parser.add_argument("--feature", type=str, default="AE", help="feature from 'DDPM' or 'DDPM'")
     parser.add_argument("--mode", type=str, default="mesh", help="mode for 'mesh' or 'random'")
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
@@ -285,9 +285,9 @@ def main():
 
      # Choose datasets
     dataset = args.dataset 
-    feature_extracted = args.features_extracted
+    feature_extracted = True if args.feature == "DDPM" else False
     n = args.n
-    mesh = args.mesh
+    mesh = True if args.mode == "mesh" else False
     d = args.d
     n_pins = args.n_pins
     r = args.r
@@ -316,15 +316,15 @@ def main():
     
     if dataset == "PinMNIST":
         if mesh:
-            data_folder = f"./data/{folder}/{n}images_mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
+            data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
         else:
-            data_folder = f"./data/{folder}/{n}images_random_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
+            data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
     
     if dataset == "Synthetic":
         if mesh:
-            data_folder = f"./data/{folder}/{n}images_{d}_distanced_grid_pins_{seed}seed/"
+            data_folder = f"./data/{folder}/{d}_distanced_grid_pins_{seed}seed/"
         else:
-            data_folder = f"./data/{folder}/{n}images_upto{n_pins}pins_{seed}seed/"
+            data_folder = f"./data/{folder}/upto{n_pins}pins_{seed}seed/"
 
     transform = transforms.Compose([
         ToTensor(),         # Convert to tensor (as you were doing)
@@ -332,7 +332,7 @@ def main():
     ])
     
     transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
-                                          root_dir=f"{data_folder}/images/",
+                                          root_dir=f"./data/{folder}/images/",
                                           transform=transform)
     
     dataset_size = len(transformed_dataset)
@@ -353,58 +353,57 @@ def main():
     # Find best learning rate
     model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
 
-    if (config['experiment_id'] == 0): # Training
-        
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-        criterion_MSE = NPPLoss(identity=True).to(device)
-        lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
-        lr_finder_MSE.find_lr(train_loader,input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)
-        best_lr_MSE = lr_finder_MSE.find_best_lr()
-        print(f"Best Learning Rate for MSE: {best_lr_MSE}")
-        
-        
-        # Cases 2-6: identity=False, varying sigmas
-        best_lrs = [(0,best_lr_MSE)]
-        
-        sigmas = [0.1, 0.2, 0.5, 1, 2]
-        
-        for sigma in sigmas:
-            criterion_NPP = NPPLoss(identity=False, sigma=sigma).to(device)
-            lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
-            lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
-            best_lr_NPP = lr_finder_NPP.find_best_lr()
-            best_lrs.append((sigma, best_lr_NPP))
-            print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
-        config['best_lrs'] = best_lrs
-        # Run and save the pipeline data
-        loss_vs_sigma_data, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,\
-                                                   input_channel, epochs, val_every_epoch, best_lrs, config, num_runs, device)
-        
-        
-        # Plot and save the plot using the saved data
-        plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, results_dir=f'./history/{experiment_id}')
-        
-    else: # Testing
-        experiment_id = config['experiment_id']
-        if not os.path.exists(f'./history/{experiment_id}'):
-            raise Exception(f"Could not find experiment with id: {experiment_id}")
-        else:
-            autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
-            # MSE
-            try:
-                autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
-            except:
-                raise Exception("The model you provided does not correspond with the selected architecture. Please revise and try again.")
-            best_MSE_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=False, partial_percent=partial_percent)
-            # NPP
-            try:
-                autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_NPP.pth'))
-            except:
-                raise Exception("The model you provided does not correspond with the selected architecture. Please revise and try again.")
-            best_NPP_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=False, partial_percent=partial_percent)
-            GP_best_NPP_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device, partial_label_GP=True, partial_percent=partial_percent)
+    # Training
+    
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    criterion_MSE = NPPLoss(identity=True).to(device)
+    lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
+    lr_finder_MSE.find_lr(train_loader,input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)
+    best_lr_MSE = lr_finder_MSE.find_best_lr()
+    print(f"Best Learning Rate for MSE: {best_lr_MSE}")
+    
+    
+    # Cases 2-6: identity=False, varying sigmas
+    best_lrs = [(0,best_lr_MSE)]
+    
+    sigmas = [0.1, 0.2, 0.5, 1, 2]
+    
+    for sigma in sigmas:
+        criterion_NPP = NPPLoss(identity=False, sigma=sigma).to(device)
+        lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
+        lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
+        best_lr_NPP = lr_finder_NPP.find_best_lr()
+        best_lrs.append((sigma, best_lr_NPP))
+        print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
+    config['best_lrs'] = best_lrs
+    # Run and save the pipeline data
+    loss_vs_sigma_data, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,\
+                                                input_channel, epochs, val_every_epoch, best_lrs, config, num_runs, device)
+    
+    
+    # Plot and save the plot using the saved data
+    plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, results_dir=f'./history/{experiment_id}')
+    
+    # Testing
+    if not os.path.exists(f'./history/{experiment_id}'):
+        raise Exception(f"Could not find experiment with id: {experiment_id}")
+    else:
+        autoencoder_MSE = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+        autoencoder_NPP = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+        # Load models
+        try:
+            autoencoder_MSE.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
+            autoencoder_NPP.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_NPP.pth'))
+        except:
+            raise Exception("The model you provided does not correspond with the selected architecture. Please revise and try again.")
+        # NPP
+        for percent in [0.25, 0.50, 0.75]:
+            print(f'Percent testing {percent}')
+            best_MSE_test_loss = evaluate_model(autoencoder_MSE, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
+            best_NPP_test_loss = evaluate_model(autoencoder_NPP, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
+            GP_best_NPP_test_loss = evaluate_model(autoencoder_NPP, test_loader, input_channel, device, partial_label_GP=True, partial_percent=percent)
             # Write output into file
-            filename = f"test_{folder}_{partial_percent}"
+            filename = f"test_{folder}_{percent}.txt"
             with open(f"./history/{experiment_id}/{filename}", "w") as f:
                 f.write(f"MSE {best_MSE_test_loss}; NPP {best_NPP_test_loss}, {GP_best_NPP_test_loss} (GP)")
 
