@@ -75,22 +75,21 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
     return model, train_losses, val_losses
 
 
-def GP_prediction(P1, y1, mu1, P2, mu2, kernel_func, sigma):
+def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma):
     """
     Calculate the posterior mean and covariance matrix for y2
-    based on the corresponding input P2, the observations (y1, P1), 
+    based on the corresponding input x2, the observations (y1, x1), 
     and the prior kernel function.
-    P1 P2 shape: nx2
+    x1 x2 shape: nx2
     y mu shape: n,
     """
-    P1 = P1.float()
-    P2 = P2.float()
+    x1 = x1.float()
+    x2 = x2.float()
     # Kernel of the observations
-    Cov11 = kernel_func(P1, P1, sigma)
+    Cov11 = kernel_func(x1, x1, sigma)
     # Kernel of observations vs to-predict
-    Cov12 = kernel_func(P1, P2, sigma)
-    Cov22 = kernel_func(P2, P2, sigma)
-    # Solve
+    Cov12 = kernel_func(x1, x2, sigma)
+    Cov22 = kernel_func(x2, x2, sigma)
 
     solved = torch.linalg.solve(Cov11, Cov12).T
     # Compute posterior mean
@@ -100,6 +99,8 @@ def GP_prediction(P1, y1, mu1, P2, mu2, kernel_func, sigma):
     Cov22_new = Cov22 - (solved @ Cov12)
     return mu2_new, Cov22_new
 
+def NP_prediction(NP_model, x1, y1, x2):
+    
 
 def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_label_GP=False, partial_percent=0, kernel_func=gaussian_kernel_matrix):
     model.eval()

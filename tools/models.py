@@ -86,7 +86,7 @@ class UNet(nn.Module):
         self.time_embed.requires_grad_(False)
 
         # First half
-        self.te1 = self._make_te(time_emb_dim, 1)
+        self.te1 = self._make_te(time_emb_dim, input_channels)
         self.b1 = nn.Sequential(
             MyBlock((input_channels, 28, 28), input_channels, dims[0]),
             MyBlock((dims[0], 28, 28), dims[0], dims[0]),

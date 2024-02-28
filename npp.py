@@ -306,7 +306,7 @@ def main():
     config = vars(args)
     config['seed'] = seed
     
-    input_channel = 1 if dataset == "PinMNIST" else 3
+    input_channel = 3 if dataset == "Synthetic" else 1
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if feature_extracted:
