@@ -17,71 +17,6 @@ import argparse
 import time
 from tools.models import *
 
-def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
-    train_losses = []  # To track train loss for plotting
-    val_losses = []    # To track validation loss for plotting
-    best_val_loss = float('inf')
-
-    for epoch in range(epochs):
-        total_loss = 0
-        for batch in train_dataloader:
-            x_train = batch['image'][:, :input_channel, :, :].to(device)
-            p_train = [tensor.to(device) for tensor in batch['pins']]
-            y_train = [tensor.to(device) for tensor in batch['outputs']] 
-
-            # Forward pass
-            outputs = model(x_train.float())
-            loss = criterion(y_train, outputs, p_train)
-
-            # Backpropagation and optimization
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            total_loss += loss.item()
-        total_loss /= len(train_dataloader)
-        # Print train loss
-        train_losses.append(total_loss)
-
-        # Check validation loss every val_every_epoch epochs
-        if (epoch) % val_every_epoch == 0:
-            val_loss = 0.0
-            with torch.no_grad():
-                for val_batch in val_dataloader:
-                    x_val = val_batch['image'][:, :input_channel, :, :].to(device)
-                    p_val = [tensor.to(device) for tensor in val_batch['pins']]
-                    y_val = [tensor.to(device) for tensor in val_batch['outputs']]
-
-                    val_outputs = model(x_val.float())
-                    val_loss += criterion(y_val, val_outputs, p_val).item()
-
-            val_loss /= len(val_dataloader)  # Average validation loss
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
-                # Save the model
-                if (sigma == 0):
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/current_model_MSE.pth')
-                else:
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/current_model_NPP.pth')
-            if val_loss < global_best_val_loss:
-                global_best_val_loss = val_loss
-                # Save the model
-                if (sigma == 0):
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/best_model_MSE.pth')
-                else:
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/best_model_NPP.pth')
-
-            if early_stopping(epoch, val_loss):
-                break  # Stop training early
-            print(f'Validation Loss: {val_loss:.4f}')
-            val_losses.append(val_loss)
-
-    # Reload the best model after training
-    if (sigma == 0):
-        model.load_state_dict(torch.load(f'./history/{experiment_id}/current_model_MSE.pth'))
-    else:
-        model.load_state_dict(torch.load(f'./history/{experiment_id}/current_model_NPP.pth'))
-
-    return model, train_losses, val_losses, global_best_val_loss
 
 class CustomLRFinder:
     def __init__(self, model, criterion, optimizer, device='cuda'):
@@ -306,7 +241,13 @@ def main():
     config = vars(args)
     config['seed'] = seed
     
-    input_channel = 1 if dataset == "PinMNIST" else 3
+    if dataset == "Synthetic":
+        input_channel = 3 
+    elif dataset == "PinMNIST":
+        input_channel = 1
+    elif dataset == "Building":
+        input_channel = 4
+        
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if feature_extracted:
@@ -347,9 +288,7 @@ def main():
 
     # Find best learning rate
     model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
-
-    # Training
-    
+    # Training  
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion_MSE = NPPLoss(identity=True).to(device)
     lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
@@ -374,7 +313,6 @@ def main():
     # Run and save the pipeline data
     loss_vs_sigma_data, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,\
                                                 input_channel, epochs, val_every_epoch, best_lrs, config, num_runs, device)
-    
     
     # Plot and save the plot using the saved data
     plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, results_dir=f'./history/{experiment_id}')

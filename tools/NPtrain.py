@@ -82,8 +82,7 @@ class NeuralProcessTrainer():
                 total_loss += loss.item()
             total_loss /= len(train_dataloader)
             self.train_losses.append(total_loss)
-            print("Epoch: {}, Avg_loss: {:.3f}".format(epoch, total_loss))
-            
+            print("Epoch: {}, Avg_loss: {:.3f}".format(epoch, total_loss))      
 
             if epoch % self.print_freq == 0:
                 val_loss = 0.0
@@ -107,8 +106,6 @@ class NeuralProcessTrainer():
         self.neural_process.load_state_dict(torch.load(f'./history/{self.experiment_id}/model_NP.pth'))
 
     return model, train_losses, val_losses, global_best_val_loss
-        
-        return 
 
     def _loss(self, p_y_pred, y_target, q_target, q_context):
         """
