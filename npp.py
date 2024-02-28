@@ -314,19 +314,12 @@ def main():
     else:
         folder = f"{dataset}"
     
-    if dataset == "PinMNIST":
-        if mesh:
-            data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
-            config['n_pins'] = (28//d + 1)**2
-        else:
-            data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
-    
-    if dataset == "Synthetic":
-        if mesh:
-            data_folder = f"./data/{folder}/{d}_distanced_grid_pins_{seed}seed/"
-            config['n_pins'] = (28//d + 1)**2
-        else:
-            data_folder = f"./data/{folder}/upto{n_pins}pins_{seed}seed/"
+    pin_flag = f"_{r}radius" if dataset == "PinMNIST" else "" # Dataset name correction for PinMNIST
+    if mesh:
+        data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels{pin_flag}_{seed}seed"
+        config['n_pins'] = (28//d + 1)**2
+    else:
+        data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels{pin_flag}_{seed}seed"
 
     transform = transforms.Compose([
         ToTensor(),         # Convert to tensor (as you were doing)
