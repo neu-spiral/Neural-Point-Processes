@@ -21,10 +21,10 @@ class EarlyStoppingCallback:
         return False  # Continue training
     
     
-def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id):
+def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
     train_losses = []  # To track train loss for plotting
     val_losses = []    # To track validation loss for plotting
-    best_val_loss = float('inf') 
+    best_val_loss = float('inf')
 
     for epoch in range(epochs):
         total_loss = 0
@@ -62,7 +62,17 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 # Save the model
-                torch.save(model.state_dict(), f'./history/best_model{experiment_id}.pth')
+                if (sigma == 0):
+                    torch.save(model.state_dict(), f'./history/{experiment_id}/current_model_MSE.pth')
+                else:
+                    torch.save(model.state_dict(), f'./history/{experiment_id}/current_model_NPP.pth')
+            if val_loss < global_best_val_loss:
+                global_best_val_loss = val_loss
+                # Save the model
+                if (sigma == 0):
+                    torch.save(model.state_dict(), f'./history/{experiment_id}/best_model_MSE.pth')
+                else:
+                    torch.save(model.state_dict(), f'./history/{experiment_id}/best_model_NPP.pth')
 
             if early_stopping(epoch, val_loss):
                 break  # Stop training early
@@ -70,9 +80,12 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
             val_losses.append(val_loss)
 
     # Reload the best model after training
-    model.load_state_dict(torch.load(f'./history/best_model{experiment_id}.pth'))
+    if (sigma == 0):
+        model.load_state_dict(torch.load(f'./history/{experiment_id}/current_model_MSE.pth'))
+    else:
+        model.load_state_dict(torch.load(f'./history/{experiment_id}/current_model_NPP.pth'))
 
-    return model, train_losses, val_losses
+    return model, train_losses, val_losses, global_best_val_loss
 
 
 def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma):
@@ -100,6 +113,8 @@ def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma):
     return mu2_new, Cov22_new
 
 def NP_prediction(NP_model, x1, y1, x2):
+    y2 = NP_model(x1, y1, x2)
+    return y2
     
 
 def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_label_GP=False, partial_percent=0, kernel_func=gaussian_kernel_matrix, hidden_samples=0.5):
