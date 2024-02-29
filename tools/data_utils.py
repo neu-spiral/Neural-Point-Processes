@@ -300,7 +300,7 @@ class ToTensor(object):
         if len(image.shape) == 2:
             image = image.reshape(image.shape[0], image.shape[1], 1)
             image = image.transpose((2, 0, 1))
-        if len(image.shaoe)==3:
+        if len(image.shape)==3:
             image = image.transpose((2, 0, 1))
         image = image/image.max()
         return {'image': torch.from_numpy(image),
