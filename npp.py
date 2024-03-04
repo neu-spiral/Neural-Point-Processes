@@ -44,7 +44,6 @@ class CustomLRFinder:
                 x_train = batch['image'][:, :input_channel, :, :].to(device)
                 p_train = [tensor.to(device) for tensor in batch['pins']]
                 y_train = [tensor.to(device) for tensor in batch['outputs']]
-
                 optimizer.zero_grad()
                 outputs = model(x_train.float())
                 loss = criterion(y_train, outputs, p_train)
@@ -262,11 +261,12 @@ def main():
         else:
             data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
     elif dataset == "Synthetic":
+        folder += "/28by28pixels_1000images_123456seed"
         if mesh:
-            data_folder = f"./data/{folder}/28by28pixels_1000images_123456seed/mesh_{d}step_pins"
+            data_folder = f"./data/{folder}/mesh_{d}step_pins"
             config['n_pins'] = (28//d + 1)**2
         else:
-            data_folder = f"./data/{folder}/28by28pixels_1000images_123456seed/random_{n_pins}pins"
+            data_folder = f"./data/{folder}/random_{n_pins}pins"
     else: # dataset == "Building"
         raise Exception("Building option is still not implemented.")
 
