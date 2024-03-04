@@ -307,16 +307,27 @@ class ToTensor(object):
         return {'image': torch.from_numpy(image),
                 'pins': torch.from_numpy(pins),
                 'outputs': torch.from_numpy(outputs).to(torch.float32)}
-    
-    
+
+
 # Define a custom transform to resize the image
 class Resize(object):
-    def __call__(self, sample, size=(28,28)):
+    def __call__(self, sample, size=(100, 100)):
         image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
-        
+
+        image = Image.fromarray(np.uint8(image))
         # Resize the image to desired sized pixels
         image = transforms.functional.resize(image, size)
-        
+        image = np.asarray(image)
+
+        return {'image': image, 'pins': pins, 'outputs': outputs}
+
+
+class Lambda(object):
+    def __call__(self, sample):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+
+        image = (image - 0.5) * 2
+
         return {'image': image, 'pins': pins, 'outputs': outputs}
 
     
