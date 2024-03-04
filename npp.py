@@ -292,7 +292,7 @@ def main():
     # Create your DataLoader with the custom_collate_fn
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
     # Find best learning rate
     model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
