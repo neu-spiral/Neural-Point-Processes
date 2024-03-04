@@ -186,7 +186,7 @@ def parse_args():
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
-    parser.add_argument("--partial_percent", type=float, default=1.00, help="Value for partially showing the labels (0 to 1 range)")
+    parser.add_argument("--partial_percent", type=float, default=0.00, help="Value for partially showing the labels (0 to 1 range)")
     parser.add_argument("--r", type=int, default=3, help="Value for 'r'")
 
     # Hyperparameters
@@ -338,7 +338,7 @@ def main():
         except:
             raise Exception("The model you provided does not correspond with the selected architecture. Please revise and try again.")
         # NPP
-        for percent in [0.25, 0.50, 0.75]:
+        for percent in [0.25, 0.50, 0.75, 1.00]:
             print(f'Percent testing {percent}')
             best_MSE_test_loss = evaluate_model(autoencoder_MSE, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
             best_NPP_test_loss = evaluate_model(autoencoder_NPP, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
