@@ -266,7 +266,7 @@ def main():
             data_folder = f"./data/{folder}/28by28pixels_1000images_123456seed/mesh_{d}step_pins"
             config['n_pins'] = (28//d + 1)**2
         else:
-            data_folder = f"./data/{folder}/random_{n_pins}pins"
+            data_folder = f"./data/{folder}/28by28pixels_1000images_123456seed/random_{n_pins}pins"
     else: # dataset == "Building"
         raise Exception("Building option is still not implemented.")
 

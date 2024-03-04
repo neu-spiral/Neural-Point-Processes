@@ -130,16 +130,16 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
             y_test = [tensor.to(device) for tensor in batch['outputs']]
             test_outputs = model(x_test.float())
             
-            for i in range(len(x_test)):            
+            for i in range(len(x_test)):      
                 num_samples = int(len(p_test[i]) * hidden_samples)
                 p_sample = p_test[i][num_samples:]
                 y_sample = y_test[i][num_samples:]
                 mu_sample = (test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]]
                     
                 if partial_percent > 0 and partial_label_GP:
-                    hidden_samples = int(num_samples * partial_percent)
-                    p_ref = p_test[i][:hidden_samples]
-                    y_ref = y_test[i][:hidden_samples]
+                    reveal_samples = int(num_samples * partial_percent)
+                    p_ref = p_test[i][:reveal_samples]
+                    y_ref = y_test[i][:reveal_samples]
                     mu_ref = (test_outputs[i].squeeze())[p_ref[:, 0], p_ref[:, 1]]
                     test_outputs_new, cov = GP_prediction(p_ref, y_ref, mu_ref, p_sample, mu_sample, gaussian_kernel_matrix, sigma)
                     test_outputs[i][:, p_sample[:, 0], p_sample[:, 1]] = test_outputs_new
