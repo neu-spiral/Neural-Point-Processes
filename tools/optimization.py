@@ -158,4 +158,4 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
 
     total_loss /= len(dataloader)
     total_r2 /= len(dataloader)
-    return total_loss, total_r2
+    return total_loss #, total_r2
