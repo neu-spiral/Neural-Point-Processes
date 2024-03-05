@@ -151,7 +151,7 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
                         
             
             loss = criterion(y_test, test_outputs, p_test)
-            r2_loss = r2_score(y_test, test_outputs)
+            r2_loss = 0 #r2_score(y_test, test_outputs)
 
             total_loss += loss.item()
             total_r2 += r2_loss
