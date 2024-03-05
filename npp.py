@@ -11,7 +11,7 @@ from tools.plot_utils import plot_and_save
 from tools.data_utils import *
 from tools.losses import NPPLoss
 from tools.models import Autoencoder
-from tools.optimization import EarlyStoppingCallback, evaluate_model
+from tools.optimization import EarlyStoppingCallback, evaluate_model, train_model
 import matplotlib.pyplot as plt
 import argparse
 import time
@@ -44,7 +44,6 @@ class CustomLRFinder:
                 x_train = batch['image'][:, :input_channel, :, :].to(device)
                 p_train = [tensor.to(device) for tensor in batch['pins']]
                 y_train = [tensor.to(device) for tensor in batch['outputs']]
-
                 optimizer.zero_grad()
                 outputs = model(x_train.float())
                 loss = criterion(y_train, outputs, p_train)
@@ -186,7 +185,7 @@ def parse_args():
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
-    parser.add_argument("--partial_percent", type=float, default=1.00, help="Value for partially showing the labels (0 to 1 range)")
+    parser.add_argument("--partial_percent", type=float, default=0.00, help="Value for partially showing the labels (0 to 1 range)")
     parser.add_argument("--r", type=int, default=3, help="Value for 'r'")
 
     # Hyperparameters
@@ -255,12 +254,21 @@ def main():
     else:
         folder = f"{dataset}"
     
-    pin_flag = f"_{r}radius" if dataset == "PinMNIST" else "" # Dataset name correction for PinMNIST
-    if mesh:
-        data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels{pin_flag}_{seed}seed"
-        config['n_pins'] = (28//d + 1)**2
-    else:
-        data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels{pin_flag}_{seed}seed"
+    if dataset == "PinMNIST":
+        if mesh:
+            data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
+            config['n_pins'] = (28//d + 1)**2
+        else:
+            data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
+    elif dataset == "Synthetic":
+        folder += "/28by28pixels_1000images_123456seed"
+        if mesh:
+            data_folder = f"./data/{folder}/mesh_{d}step_pins"
+            config['n_pins'] = (28//d + 1)**2
+        else:
+            data_folder = f"./data/{folder}/random_{n_pins}pins"
+    else: # dataset == "Building"
+        raise Exception("Building option is still not implemented.")
 
     transform = transforms.Compose([
         ToTensor(),         # Convert to tensor (as you were doing)
@@ -273,7 +281,7 @@ def main():
     
     dataset_size = len(transformed_dataset)
     train_size = int(0.7 * dataset_size)
-    val_size = int(0.15 * dataset_size)
+    val_size = int(0.10 * dataset_size)
     test_size = dataset_size - train_size - val_size
     
     # Split the dataset into train, validation, and test sets
@@ -284,7 +292,7 @@ def main():
     # Create your DataLoader with the custom_collate_fn
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
     # Find best learning rate
     model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
@@ -330,7 +338,7 @@ def main():
         except:
             raise Exception("The model you provided does not correspond with the selected architecture. Please revise and try again.")
         # NPP
-        for percent in [0.25, 0.50, 0.75]:
+        for percent in [0.25, 0.50, 0.75, 1.00]:
             print(f'Percent testing {percent}')
             best_MSE_test_loss = evaluate_model(autoencoder_MSE, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
             best_NPP_test_loss = evaluate_model(autoencoder_NPP, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
