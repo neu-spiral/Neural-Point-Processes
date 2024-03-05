@@ -1,5 +1,6 @@
 import torch
 from tools.losses import NPPLoss, gaussian_kernel_matrix
+from sklearn.metrics import r2_score
 import scipy
 
 class EarlyStoppingCallback:
@@ -118,9 +119,10 @@ def NP_prediction(NP_model, x1, y1, x2):
     
 
 def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_label_GP=False, partial_percent=0, kernel_func=gaussian_kernel_matrix, hidden_samples=0.5):
-    # Partial percent is the percentage of hidden labels you want to rebeal
+    # Partial percent is the percentage of hidden labels you want to reveal
     model.eval()
     total_loss = 0.0
+    total_r2 = 0.0
     criterion = NPPLoss(identity=True).to(device)
     
     with torch.no_grad():
@@ -149,8 +151,11 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
                         
             
             loss = criterion(y_test, test_outputs, p_test)
+            r2_loss = r2_score(y_test, test_outputs)
 
             total_loss += loss.item()
+            total_r2 += r2_loss
 
     total_loss /= len(dataloader)
-    return total_loss
+    total_r2 /= len(dataloader)
+    return total_loss, total_r2
