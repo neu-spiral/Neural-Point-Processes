@@ -95,6 +95,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     best_val_loss_NPP = float('inf')
     best_sigma_NPP = float('inf')
     config['experiment_id'] = experiment_id
+    losses = {}
 
     # Create storage directory and store the experiment configuration
     if not os.path.exists(f'./history/{experiment_id}'):
@@ -117,6 +118,8 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
         model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, epochs,\
                                                       val_every_epoch, learning_rates[count][1], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_MSE, sigma=0)
+        losses[f"MSE_run{run}_train"] = train_losses
+        losses[f"MSE_run{run}_val"] = val_losses
         if best_val_loss < best_val_loss_MSE:
             best_val_loss_MSE = best_val_loss
 
@@ -133,6 +136,8 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
             optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
             model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader, input_channel, epochs,\
                                                           val_every_epoch, learning_rates[count][1], criterion, optimizer, device, early_stopping, experiment_id, best_val_loss_NPP, sigma=sigma)
+            losses[f"NPP_run{run}_sigma{sigma}_train"] = train_losses
+            losses[f"NPP_run{run}_sigma{sigma}_val"] = val_losses
             if best_val_loss < best_val_loss_NPP:
                 best_val_loss_NPP = best_val_loss
                 best_sigma_NPP = sigma
@@ -146,6 +151,8 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
 
         test_losses_npp_true.append(test_losses_vs_sigma_npp_true)
         GP_test_losses_npp_true.append(GP_test_losses_vs_sigma_npp_true)
+    with open(f"./history/{experiment_id}/losses.json", "w") as outfile: 
+        json.dump(losses, outfile)
     return GP_test_losses_npp_true, test_losses_npp_true, test_losses_npp_false, best_sigma_NPP, experiment_id
 
     
