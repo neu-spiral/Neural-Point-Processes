@@ -245,10 +245,8 @@ def save_data(images, pins, labels, images_directory, output_directory):
             # Write data to CSV
             csv_writer.writerow([os.path.basename(image_filename), image_pins, label])
 
-    print("Data and images have been saved to the CSV and image files.")
-    
-
-
+    print("Data and images have been saved to the CSV and image files.")      
+        
 class PinDataset(Dataset):
     """Synthetic Heatmaps dataset."""
 
@@ -280,15 +278,22 @@ class PinDataset(Dataset):
             image = io.imread(img_name)
         pins = np.asarray(eval(self.pins_frame.iloc[idx, 1]))
         outputs = np.asarray(eval(self.pins_frame.iloc[idx, 2]))
-
         sample = {'image': image, 'pins': pins, 'outputs': outputs}
-
         if self.transform:
             sample = self.transform(sample)
-
         return sample
     
+# Define a custom transform to resize the image
+class Resize(object):
+    def __call__(self, sample, size=(28,28)):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+        
+        # Resize the image to desired sized pixels
+        image = transforms.functional.resize(image, size)
+        
+        return {'image': image, 'pins': pins, 'outputs': outputs}
 
+    
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
@@ -300,28 +305,15 @@ class ToTensor(object):
         # torch image: C x H x W
         if len(image.shape) == 2:
             image = image.reshape(image.shape[0], image.shape[1], 1)
-            image = image.transpose((2, 0, 1))
+            #image = image.transpose((2, 0, 1))
         if len(image.shape)==3:
             image = image.transpose((2, 0, 1))
-        image = image/image.max()
+        image = image/255 
         return {'image': torch.from_numpy(image),
                 'pins': torch.from_numpy(pins),
                 'outputs': torch.from_numpy(outputs).to(torch.float32)}
 
-
-# Define a custom transform to resize the image
-class Resize(object):
-    def __call__(self, sample, size=(28, 28)):
-        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
-
-        # image = Image.fromarray(np.uint8(image))
-        # Resize the image to desired sized pixels
-        image = transforms.functional.resize(image, size)
-        # image = np.asarray(image)
-
-        return {'image': image, 'pins': pins, 'outputs': outputs}
-
-
+    
 class Lambda(object):
     def __call__(self, sample):
         image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
