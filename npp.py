@@ -351,7 +351,7 @@ def main():
             best_NPP_test_loss = evaluate_model(autoencoder_NPP, test_loader, input_channel, device, partial_label_GP=False, partial_percent=percent)
             GP_best_NPP_test_loss = evaluate_model(autoencoder_NPP, test_loader, input_channel, device, partial_label_GP=True, partial_percent=percent)
             # Write output into file
-            filename = f"test_{folder}_{percent}.txt"
+            filename = f"test_{folder.split('/')[0]}_{percent}.txt"
             with open(f"./history/{experiment_id}/{filename}", "w") as f:
                 f.write(f"MSE {best_MSE_test_loss}; NPP {best_NPP_test_loss}, {GP_best_NPP_test_loss} (GP)")
 
