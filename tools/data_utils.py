@@ -317,7 +317,7 @@ class Resize(object):
         # image = Image.fromarray(np.uint8(image))
         # Resize the image to desired sized pixels
         image = transforms.functional.resize(image, size)
-        image = np.asarray(image)
+        # image = np.asarray(image)
 
         return {'image': image, 'pins': pins, 'outputs': outputs}
 
