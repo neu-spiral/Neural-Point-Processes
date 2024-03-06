@@ -96,7 +96,7 @@ def plot_loss(train_losses, val_losses, val_every_epoch, NPP, sigma, dataset, le
     
 def plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, model_name="Auto encoder", results_dir = './results'):
     # Unpack the data
-    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false = loss_vs_sigma_data
+    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, _ = loss_vs_sigma_data
     test_loss_npp_false = [test_loss_npp_false for i in range(len(sigmas))]
 
     # Calculate mean and confidence intervals for NPP=True runs

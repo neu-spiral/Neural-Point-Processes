@@ -1,7 +1,9 @@
 import torch
 from tools.losses import NPPLoss, gaussian_kernel_matrix
-from sklearn.metrics import r2_score
+# from sklearn.metrics import r2_score
+from torcheval.metrics.functional import r2_score
 import scipy
+
 
 class EarlyStoppingCallback:
     def __init__(self, patience=10, min_delta=0.001):
@@ -20,11 +22,12 @@ class EarlyStoppingCallback:
                 print(f"Early stopping after {epoch} epochs.")
                 return True  # Stop training
         return False  # Continue training
-    
-    
-def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate, criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
+
+
+def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate,
+                criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
     train_losses = []  # To track train loss for plotting
-    val_losses = []    # To track validation loss for plotting
+    val_losses = []  # To track validation loss for plotting
     best_val_loss = float('inf')
 
     for epoch in range(epochs):
@@ -32,7 +35,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
         for batch in train_dataloader:
             x_train = batch['image'][:, :input_channel, :, :].to(device)
             p_train = [tensor.to(device) for tensor in batch['pins']]
-            y_train = [tensor.to(device) for tensor in batch['outputs']] 
+            y_train = [tensor.to(device) for tensor in batch['outputs']]
 
             # Forward pass
             outputs = model(x_train.float())
@@ -107,55 +110,59 @@ def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma):
 
     solved = torch.linalg.solve(Cov11, Cov12).T
     # Compute posterior mean
-    mu2_new = solved @ (y1-mu1)+mu2
-    
+    mu2_new = solved @ (y1 - mu1) + mu2
+
     # Compute the posterior covariance
     Cov22_new = Cov22 - (solved @ Cov12)
     return mu2_new, Cov22_new
 
+
 def NP_prediction(NP_model, x1, y1, x2):
     y2 = NP_model(x1, y1, x2)
     return y2
-    
 
-def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_label_GP=False, partial_percent=0, kernel_func=gaussian_kernel_matrix, hidden_samples=0.5):
+
+def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_label_GP=False, partial_percent=0,
+                   kernel_func=gaussian_kernel_matrix, hidden_samples=0.5):
     # Partial percent is the percentage of hidden labels you want to reveal
     model.eval()
     total_loss = 0.0
     total_r2 = 0.0
     criterion = NPPLoss(identity=True).to(device)
-    
+    total_images = 0
+
     with torch.no_grad():
         for batch in dataloader:
-            x_test = batch['image'][:, :input_channel, :, :].to(device)
-            p_test = [tensor.to(device) for tensor in batch['pins']]
-            y_test = [tensor.to(device) for tensor in batch['outputs']]
-            test_outputs = model(x_test.float())
-            
-            for i in range(len(x_test)):      
-                num_samples = int(len(p_test[i]) * hidden_samples)
+            x_test = batch['image'][:, :input_channel, :, :].to(device)  # batch of image tensors (batch * ch * h * w)
+            p_test = [tensor.to(device) for tensor in batch['pins']]  # list of pin tensors
+            y_test = [tensor.to(device) for tensor in batch['outputs']]  # list of output tensors
+            test_outputs = model(x_test.float())  # batch of 2D predictions [batch, 1, h, w]
+
+            for i in range(len(x_test)):  # iterates over each image on the batch
+                num_samples = int(len(p_test[i]) * hidden_samples)  # test on half of the samples
                 p_sample = p_test[i][num_samples:]
                 y_sample = y_test[i][num_samples:]
+
+                # below we extract the outputs on test_outputs by pin locations
                 mu_sample = (test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]]
-                    
+
                 if partial_percent > 0 and partial_label_GP:
                     reveal_samples = int(num_samples * partial_percent)
                     p_ref = p_test[i][:reveal_samples]
                     y_ref = y_test[i][:reveal_samples]
                     mu_ref = (test_outputs[i].squeeze())[p_ref[:, 0], p_ref[:, 1]]
-                    test_outputs_new, cov = GP_prediction(p_ref, y_ref, mu_ref, p_sample, mu_sample, gaussian_kernel_matrix, sigma)
+                    test_outputs_new, cov = GP_prediction(p_ref, y_ref, mu_ref, p_sample, mu_sample,
+                                                          gaussian_kernel_matrix, sigma)
                     test_outputs[i][:, p_sample[:, 0], p_sample[:, 1]] = test_outputs_new
-                    
+
                 y_test[i] = y_sample
                 p_test[i] = p_sample
-                        
-            
-            loss = criterion(y_test, test_outputs, p_test)
-            r2_loss = 0 #r2_score(y_test, test_outputs)
+                total_r2 += r2_score((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i]).item()
 
+            loss = criterion(y_test, test_outputs, p_test)
             total_loss += loss.item()
-            total_r2 += r2_loss
+            total_images += len(x_test)
 
     total_loss /= len(dataloader)
-    total_r2 /= len(dataloader)
-    return total_loss #, total_r2
+    total_r2 /= total_images
+    return total_loss, total_r2
