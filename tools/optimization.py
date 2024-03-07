@@ -129,7 +129,6 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
     total_loss = 0.0
     total_r2 = 0.0
     criterion = NPPLoss(identity=True).to(device)
-    total_images = 0
 
     with torch.no_grad():
         for batch in dataloader:
@@ -159,11 +158,10 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
                 p_test[i] = p_sample
                 if torch.allclose(y_test[i], torch.zeros_like(y_test[i]), atol=1e-10):
                     # If target is constant r2 should return 0.0 if pred is different or 1.0 if pred == target
-                    if torch.all(torch.eq(mu_sample, y_test[i])):
+                    if torch.all(torch.eq((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i])):
                         r2 += 1.0
                 else:
-                    r2 += r2_score(mu_sample, y_test[i]).item()
-
+                    r2 += r2_score((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i]).item()
             loss = criterion(y_test, test_outputs, p_test)
             total_loss += loss.item()
             total_r2 += r2/len(x_test)
