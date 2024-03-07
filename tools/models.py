@@ -4,29 +4,35 @@ import torch.nn.functional as F
 
 class Autoencoder(nn.Module):
     """usage: autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)"""
-    def __init__(self, num_kernels_encoder, num_kernels_decoder, input_channel=3):
+    def __init__(self, num_kernels_encoder, num_kernels_decoder, input_channel=3, deeper=False):
         super(Autoencoder, self).__init__()
         self.input_channel = input_channel
-        self.encoder = self._build_encoder(num_kernels_encoder)
-        self.decoder = self._build_decoder(num_kernels_decoder, num_kernels_encoder[-1])
+        self.encoder = self._build_encoder(num_kernels_encoder, deeper)
+        self.decoder = self._build_decoder(num_kernels_decoder, num_kernels_encoder[-1], deeper)
         
-    def _build_encoder(self, num_kernels):
+    def _build_encoder(self, num_kernels, deeper):
         layers = []
         
         for out_channels in num_kernels:
             layers.append(nn.Conv2d(self.input_channel, out_channels, kernel_size=3, padding=1))
             layers.append(nn.ReLU())
+            if deeper: # Extra layer that won't change the size
+                layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+                layers.append(nn.ReLU())
             layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
             self.input_channel = out_channels  # Update input_channel for the next layer
         
         return nn.Sequential(*layers)
     
-    def _build_decoder(self, num_kernels, input_channel):
+    def _build_decoder(self, num_kernels, input_channel, deeper):
         layers = []
         
         for out_channels in num_kernels:
             layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2))
             layers.append(nn.ReLU())
+            if deeper: # Extra layer that won't change the size
+                layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+                layers.append(nn.ReLU())
             input_channel = out_channels
         
         layers.append(nn.ConvTranspose2d(input_channel, 1, kernel_size=2, stride=2))
@@ -35,8 +41,10 @@ class Autoencoder(nn.Module):
         return nn.Sequential(*layers)
     
     def forward(self, x):
+        inputHdim, inputWdim = x.size()[2], x.size()[3]
         x = self.encoder(x)
         x = self.decoder(x)
+        assert x.size()[1:] == (1, inputHdim, inputWdim), "Output dimensions do not match the expected size [1, inputHdim, inputWdim]"
         return x
 
 

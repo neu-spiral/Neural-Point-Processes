@@ -137,7 +137,7 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
             p_test = [tensor.to(device) for tensor in batch['pins']]  # list of pin tensors
             y_test = [tensor.to(device) for tensor in batch['outputs']]  # list of output tensors
             test_outputs = model(x_test.float())  # batch of 2D predictions [batch, 1, h, w]
-
+            r2 = 0
             for i in range(len(x_test)):  # iterates over each image on the batch
                 num_samples = int(len(p_test[i]) * hidden_samples)  # test on half of the samples
                 p_sample = p_test[i][num_samples:]
@@ -157,12 +157,17 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
 
                 y_test[i] = y_sample
                 p_test[i] = p_sample
-                total_r2 += r2_score((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i]).item()
+                if torch.allclose(y_test[i], torch.zeros_like(y_test[i]), atol=1e-10):
+                    # If target is constant r2 should return 0.0 if pred is different or 1.0 if pred == target
+                    if torch.all(torch.eq(mu_sample, y_test[i])):
+                        r2 += 1.0
+                else:
+                    r2 += r2_score(mu_sample, y_test[i]).item()
 
             loss = criterion(y_test, test_outputs, p_test)
             total_loss += loss.item()
-            total_images += len(x_test)
+            total_r2 += r2/len(x_test)
 
     total_loss /= len(dataloader)
-    total_r2 /= total_images
+    total_r2 /= len(dataloader)
     return total_loss, total_r2
