@@ -91,6 +91,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     GP_test_losses_npp_true = []
     test_losses_npp_true = []
     test_losses_npp_false = []
+    GP_r2_losses_npp_true = []
     r2_losses_npp_true = []
     r2_losses_npp_false = []
     partial_percent = config['partial_percent']
@@ -99,6 +100,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     best_val_loss_NPP = float('inf')
     best_sigma_NPP = float('inf')
     config['experiment_id'] = experiment_id
+    deeper = config['deeper']
     losses = {}
 
     # Create storage directory and store the experiment configuration
@@ -120,7 +122,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         early_stopping = EarlyStoppingCallback(patience=10, min_delta=0.001)
         criterion = NPPLoss(identity=True).to(device)
 
-        autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+        autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
 
         optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
         model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader,
@@ -145,7 +147,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         for sigma in sigmas:
             early_stopping = EarlyStoppingCallback(patience=10, min_delta=0.001)
             criterion = NPPLoss(identity=False, sigma=sigma).to(device)
-            autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+            autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
             optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
             model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader,
                                                                          input_channel, epochs, \
@@ -173,21 +175,22 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         test_losses_npp_true.append(test_losses_vs_sigma_npp_true)
         GP_test_losses_npp_true.append(GP_test_losses_vs_sigma_npp_true)
         r2_losses_npp_true.append(R2_losses_vs_sigma_npp_true)
+        GP_r2_losses_npp_true.append(GP_R2_losses_vs_sigma_npp_true)
     with open(f"./history/{experiment_id}/losses.json", "w") as outfile:
         json.dump(losses, outfile)
-    return GP_test_losses_npp_true, test_losses_npp_true, test_losses_npp_false, r2_losses_npp_false, best_sigma_NPP, experiment_id
+    return GP_test_losses_npp_true, test_losses_npp_true, test_losses_npp_false, r2_losses_npp_false, r2_losses_npp_true, GP_r2_losses_npp_true, best_sigma_NPP, experiment_id
 
 
 # Function to run the pipeline and save data
 def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,
                           input_channel, epochs, val_every_epoch, learning_rates, config, num_runs, device):
     # Run the pipeline
-    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, r2_loss_npp_false, best_sigma_NPP, experiment_id = run_pipeline_ci(
+    GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, r2_loss_npp_false, r2_losses_npp_true, GP_r2_losses_npp_true, best_sigma_NPP, experiment_id = run_pipeline_ci(
         sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, epochs,
         val_every_epoch, learning_rates, config, device, num_runs)
     partial_percent = config['partial_percent']
     # Run final testing
-    autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+    autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=config["deeper"]).to(device)
     # MSE
     autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
     best_MSE_test_loss, best_R2_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device,
@@ -202,16 +205,21 @@ def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, trai
                                                                      partial_label_GP=True,
                                                                      partial_percent=partial_percent)
     print("start saving!")
-    # Save the data
+    # Save losses
     save_loss(test_loss_npp_true, f'./history/{experiment_id}/test_loss_npp_true.npy')
     save_loss(test_loss_npp_false, f'./history/{experiment_id}/test_loss_npp_false.npy')
     save_loss(GP_test_loss_npp_true, f'./history/{experiment_id}/GP_test_loss_npp_true.npy')
+    # Save r2 scores
+    save_loss(r2_loss_npp_false, f'./history/{experiment_id}/r2_loss_npp_false.npy')
+    save_loss(r2_losses_npp_true, f'./history/{experiment_id}/r2_losses_npp_true.npy')
+    save_loss(GP_r2_losses_npp_true, f'./history/{experiment_id}/GP_r2_losses_npp_true.npy')
     f = open(f"./history/{experiment_id}/results.txt", "w")
     f.write(
-        f"Results {experiment_id}:\n MSE: {best_MSE_test_loss}, R2: {best_R2_test_loss} | NPP (sigma {best_sigma_NPP}): {best_NPP_test_loss}, GP: {GP_best_NPP_test_loss}")
+        f"Results {experiment_id}:\n MSE: {best_MSE_test_loss}, R2: {best_R2_test_loss} "
+        f"| NPP (sigma {best_sigma_NPP}): {best_NPP_test_loss}, R2: {best_NPP_R2_test_loss}; GP: {GP_best_NPP_test_loss}, R2: {GP_best_NPP_r2_test_loss}")
     f.close()
     print("saved")
-    return (GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, r2_loss_npp_false), experiment_id
+    return (GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false), (r2_loss_npp_false, r2_losses_npp_true, GP_r2_losses_npp_true), experiment_id
 
 
 def parse_args():
@@ -240,9 +248,10 @@ def parse_args():
     parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2, 5],
                         help="List of sigma values to test")
 
-    # Kernel sizes
+    # Model configuration
     parser.add_argument("--num_encoder", nargs="+", type=int, default=[32, 16], help="List of encoder kernel sizes")
     parser.add_argument("--num_decoder", nargs="+", type=int, default=[32], help="List of decoder kernel sizes")
+    parser.add_argument("--deeper", action='store_true', default=False, help="Add extra convolutional layer for the model")
 
     # Evaluation mode
     parser.add_argument("--experiment_id", type=int, default=0,
@@ -276,6 +285,7 @@ def main():
     sigmas = args.sigmas  # Set the sigma values you want to test
     num_kernels_encoder = args.num_encoder
     num_kernels_decoder = args.num_decoder
+    deeper = args.deeper
     learning_rate = args.learning_rate
     val_every_epoch = args.val_every_epoch
     num_runs = args.num_runs
@@ -284,9 +294,15 @@ def main():
     config['seed'] = seed
 
     if dataset == "Synthetic":
-        input_channel = 3
+        if feature_extracted:
+            input_channel = 74
+        else:
+            input_channel = 3
     elif dataset == "PinMNIST":
-        input_channel = 1
+        if feature_extracted:
+            input_channel = 71
+        else:
+            input_channel = 1
     elif dataset == "Building":
         input_channel = 4
 
@@ -338,7 +354,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
     # Find best learning rate
-    model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+    model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
     # Training  
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion_MSE = NPPLoss(identity=True).to(device)
@@ -361,7 +377,7 @@ def main():
         print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
     config['best_lrs'] = best_lrs
     # Run and save the pipeline data
-    loss_vs_sigma_data, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,
+    loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,
                                                               train_loader, val_loader, test_loader, \
                                                               input_channel, epochs, val_every_epoch, best_lrs, config,
                                                               num_runs, device)
@@ -373,8 +389,8 @@ def main():
     if not os.path.exists(f'./history/{experiment_id}'):
         raise Exception(f"Could not find experiment with id: {experiment_id}")
     else:
-        autoencoder_MSE = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
-        autoencoder_NPP = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)
+        autoencoder_MSE = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+        autoencoder_NPP = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
         # Load models
         try:
             autoencoder_MSE.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
@@ -385,18 +401,18 @@ def main():
         # NPP
         for percent in [0.25, 0.50, 0.75, 1.00]:
             print(f'Percent testing {percent}')
-            best_MSE_test_loss, best_R2_test_loss = evaluate_model(autoencoder_MSE, test_loader, input_channel, device,
+            best_MSE_test_loss, best_R2_test_loss_MSE = evaluate_model(autoencoder_MSE, test_loader, input_channel, device,
                                                                    partial_label_GP=False, partial_percent=percent)
-            best_NPP_test_loss, _ = evaluate_model(autoencoder_NPP, test_loader, input_channel, device,
+            best_NPP_test_loss, best_R2_test_loss_NPP = evaluate_model(autoencoder_NPP, test_loader, input_channel, device,
                                                    partial_label_GP=False, partial_percent=percent)
-            GP_best_NPP_test_loss, _ = evaluate_model(autoencoder_NPP, test_loader, input_channel, device,
+            GP_best_NPP_test_loss, best_R2_test_loss_GP = evaluate_model(autoencoder_NPP, test_loader, input_channel, device,
                                                       partial_label_GP=True, partial_percent=percent)
             # Write output into file
             filename = f"test_{folder.split('/')[0]}_{percent}.txt"
             with open(f"./history/{experiment_id}/{filename}", "w") as f:
                 f.write(
-                    f"MSE {best_MSE_test_loss}, R2 {best_R2_test_loss}, NPP {best_NPP_test_loss}, "
-                    f"{GP_best_NPP_test_loss} (GP)")
+                    f"MSE: {best_MSE_test_loss}, R2: {best_R2_test_loss_MSE} "
+                    f"| NPP: {best_NPP_test_loss}, R2: {best_R2_test_loss_NPP}; GP: {GP_best_NPP_test_loss}, R2: {best_R2_test_loss_GP}")
 
 
 if __name__ == "__main__":
