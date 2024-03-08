@@ -245,7 +245,63 @@ def save_data(images, pins, labels, images_directory, output_directory):
             # Write data to CSV
             csv_writer.writerow([os.path.basename(image_filename), image_pins, label])
 
-    print("Data and images have been saved to the CSV and image files.")      
+    print("Data and images have been saved to the CSV and image files.")
+
+#save data by mode
+def save_data_by_mode(images, pins, labels, images_directory, output_directory, mode='ae'):
+    """
+    Save multi-channel images, pin coordinates, and count labels to CSV, and save images to files in the specified directory.
+
+    Args:
+    images (list): List of multi-channel images.
+    pins (list): List of lists of (x, y) coordinate tuples representing pin locations.
+    labels (list): List of labels counted at the pin locations.
+    images_directory (str): The directory where images will be saved.
+    output_directory (str): The directory where data, and count labels will be saved.
+
+    This function saves multi-channel images, pin coordinates, and count labels to CSV files, and also saves the images as files in the 'images' subdirectory within the 'output_directory'. Each image is saved as a numbered PNG or NPY file (e.g., "0.png", "1.npy") within the 'images' subdirectory. The CSV file 'pins.csv' contains columns for image filenames, pin coordinates, and count labels.
+
+    Example usage:
+    save_data(images, pins, labels, 'images_directory', 'output_directory')
+    """
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_directory, exist_ok=True)
+
+    # Define subdirectories for images and count labels
+    images_directory = os.path.join(images_directory, 'images')
+
+    # Create subdirectories for images and count labels
+    os.makedirs(images_directory, exist_ok=True)
+
+    # Save images as "0.png" or "0.npy", "1.png" or "1.npy", etc., and dump data to CSV
+    with open(os.path.join(output_directory, 'pins.csv'), 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+
+        # Write the header row
+        csv_writer.writerow(['image', 'pins', 'outputs'])
+
+        for i, (image, image_pins, label) in enumerate(zip(images, pins, labels)):
+            # Save the image as "i.png" or "i.npy" in the images subdirectory
+            image_filename = os.path.join(images_directory, f"{i}")
+            if mode == 'ae':
+                # save as PNG
+                image_filename += ".png"
+                image = image.detach().cpu().numpy()
+                im = Image.fromarray(image, mode='RGBA')
+                if not os.path.exists(image_filename):
+                    print(image_filename)
+                    im.save(image_filename)
+            elif mode == 'ddpm':
+                # For multi-channel images, save as NPY
+                image_filename += ".npy"
+                if not os.path.exists(image_filename):
+                    np.save(image_filename, image.detach().cpu().numpy())
+
+            # Write data to CSV
+            csv_writer.writerow([os.path.basename(image_filename), image_pins, label])
+
+    print("Data and images have been saved to the CSV and image files.")
+    
         
 class PinDataset(Dataset):
     """Synthetic Heatmaps dataset."""
