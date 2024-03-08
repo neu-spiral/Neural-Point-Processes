@@ -101,6 +101,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     best_sigma_NPP = float('inf')
     config['experiment_id'] = experiment_id
     deeper = config['deeper']
+    manual_lr = config['manual_lr']
     losses = {}
 
     # Create storage directory and store the experiment configuration
@@ -119,7 +120,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         r2_loss_npp_false = None
 
         # Run NPP=False once and collect the test loss
-        early_stopping = EarlyStoppingCallback(patience=10, min_delta=0.001)
+        early_stopping = EarlyStoppingCallback(patience=15, min_delta=0.001)
         criterion = NPPLoss(identity=True).to(device)
 
         autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
@@ -129,7 +130,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
                                                                      input_channel, epochs, \
                                                                      val_every_epoch, learning_rates[count][1],
                                                                      criterion, optimizer, device, early_stopping,
-                                                                     experiment_id, best_val_loss_MSE, sigma=0)
+                                                                     experiment_id, best_val_loss_MSE, manual_lr, sigma=0)
         losses[f"MSE_run{run}_train"] = train_losses
         losses[f"MSE_run{run}_val"] = val_losses
         if best_val_loss < best_val_loss_MSE:
@@ -145,7 +146,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         count += 1
         # Run LR Finder for different sigma values
         for sigma in sigmas:
-            early_stopping = EarlyStoppingCallback(patience=10, min_delta=0.001)
+            early_stopping = EarlyStoppingCallback(patience=12, min_delta=0.001)
             criterion = NPPLoss(identity=False, sigma=sigma).to(device)
             autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
             optimizer = optim.Adam(autoencoder.parameters(), lr=learning_rates[count][1])
@@ -153,7 +154,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
                                                                          input_channel, epochs, \
                                                                          val_every_epoch, learning_rates[count][1],
                                                                          criterion, optimizer, device, early_stopping,
-                                                                         experiment_id, best_val_loss_NPP, sigma=sigma)
+                                                                         experiment_id, best_val_loss_NPP, manual_lr, sigma=sigma)
             losses[f"NPP_run{run}_sigma{sigma}_train"] = train_losses
             losses[f"NPP_run{run}_sigma{sigma}_val"] = val_losses
             if best_val_loss < best_val_loss_NPP:
@@ -243,6 +244,7 @@ def parse_args():
     parser.add_argument("--val_every_epoch", type=int, default=5, help="Number of epochs in between validations")
     parser.add_argument("--num_runs", type=int, default=3,
                         help="Number of different trainings to do per model and sigma")
+    parser.add_argument("--manual_lr", action='store_true', default=False, help="Do not use Custom LR Finder")
 
     # List of sigma values
     parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2, 5],
@@ -289,6 +291,7 @@ def main():
     learning_rate = args.learning_rate
     val_every_epoch = args.val_every_epoch
     num_runs = args.num_runs
+    manual_lr = args.manual_lr
 
     config = vars(args)
     config['seed'] = seed
@@ -353,28 +356,31 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
-    # Find best learning rate
-    model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
-    # Training  
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    criterion_MSE = NPPLoss(identity=True).to(device)
-    lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
-    lr_finder_MSE.find_lr(train_loader, input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)
-    best_lr_MSE = lr_finder_MSE.find_best_lr()
-    print(f"Best Learning Rate for MSE: {best_lr_MSE}")
+    if not manual_lr:
+        # Find best learning rate
+        model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+        # Training  
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        criterion_MSE = NPPLoss(identity=True).to(device)
+        lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
+        lr_finder_MSE.find_lr(train_loader, input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)
+        best_lr_MSE = lr_finder_MSE.find_best_lr()
+        print(f"Best Learning Rate for MSE: {best_lr_MSE}")
 
-    # Cases 2-6: identity=False, varying sigmas
-    best_lrs = [(0, best_lr_MSE)]
+        # Cases 2-6: identity=False, varying sigmas
+        best_lrs = [(0, best_lr_MSE)]
 
-    sigmas = [0.1, 0.2, 0.5, 1, 2]
+        sigmas = [0.1, 0.2, 0.5, 1, 2]
 
-    for sigma in sigmas:
-        criterion_NPP = NPPLoss(identity=False, sigma=sigma).to(device)
-        lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
-        lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
-        best_lr_NPP = lr_finder_NPP.find_best_lr()
-        best_lrs.append((sigma, best_lr_NPP))
-        print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
+        for sigma in sigmas:
+            criterion_NPP = NPPLoss(identity=False, sigma=sigma).to(device)
+            lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
+            lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
+            best_lr_NPP = lr_finder_NPP.find_best_lr()
+            best_lrs.append((sigma, best_lr_NPP))
+            print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
+    else:
+        best_lrs = [(0, 1e-2)] + [(sigma, 1e-2) for sigma in sigmas] # Initial LR for MSE and each sigma
     config['best_lrs'] = best_lrs
     # Run and save the pipeline data
     loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,

@@ -2,6 +2,7 @@ import torch
 from tools.losses import NPPLoss, gaussian_kernel_matrix
 # from sklearn.metrics import r2_score
 from torcheval.metrics.functional import r2_score
+import torch.optim.lr_scheduler as lr_scheduler
 import scipy
 
 
@@ -25,10 +26,13 @@ class EarlyStoppingCallback:
 
 
 def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate,
-                criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, sigma=0):
+                criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, manual_lr, sigma=0):
     train_losses = []  # To track train loss for plotting
     val_losses = []  # To track validation loss for plotting
     best_val_loss = float('inf')
+    if manual_lr:
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-5)
+        current_lr = optimizer.param_groups[0]["lr"]
 
     for epoch in range(epochs):
         total_loss = 0
@@ -47,6 +51,11 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
             optimizer.step()
             total_loss += loss.item()
         total_loss /= len(train_dataloader)
+        if manual_lr:
+            scheduler.step(total_loss)
+            if (current_lr != optimizer.param_groups[0]["lr"]):
+                current_lr = optimizer.param_groups[0]["lr"]
+                print("New LR: ", current_lr)
         # Print train loss
         train_losses.append(total_loss)
 
