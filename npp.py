@@ -326,12 +326,20 @@ def main():
             config['n_pins'] = (28 // d + 1) ** 2
         else:
             data_folder = f"./data/{folder}/random_{n_pins}pins"
-    else:  # dataset == "Building"
-        raise Exception("Building option is still not implemented.")
-
+    elif dataset == "Building":
+        if mesh:
+            data_folder = f"./data/{folder}/mesh_{d}_step"
+        else:
+            data_folder = f"./data/folder/random_n_pins_{n_pins}"
+    
+    if dataset == "Building":
+        resize = Resize100
+    else:
+        resize = Resize
+        
     transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
-        Resize()  # Resize to 100x100
+        resize()  # Resize to 100x100
     ])
 
     transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
