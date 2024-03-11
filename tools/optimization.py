@@ -26,7 +26,7 @@ class EarlyStoppingCallback:
 
 
 def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, val_every_epoch, learning_rate,
-                criterion, optimizer, device, early_stopping, experiment_id, global_best_val_loss, manual_lr, sigma=0):
+                criterion, optimizer, device, early_stopping, experiment_id, exp_name, global_best_val_loss, manual_lr, sigma=0):
     train_losses = []  # To track train loss for plotting
     val_losses = []  # To track validation loss for plotting
     best_val_loss = float('inf')
@@ -76,16 +76,16 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
                 best_val_loss = val_loss
                 # Save the model
                 if (sigma == 0):
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/current_model_MSE.pth')
+                    torch.save(model.state_dict(), f'./history{exp_name}/{experiment_id}/current_model_MSE.pth')
                 else:
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/current_model_NPP.pth')
+                    torch.save(model.state_dict(), f'./history{exp_name}/{experiment_id}/current_model_NPP.pth')
             if val_loss < global_best_val_loss:
                 global_best_val_loss = val_loss
                 # Save the model
                 if (sigma == 0):
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/best_model_MSE.pth')
+                    torch.save(model.state_dict(), f'./history{exp_name}/{experiment_id}/best_model_MSE.pth')
                 else:
-                    torch.save(model.state_dict(), f'./history/{experiment_id}/best_model_NPP.pth')
+                    torch.save(model.state_dict(), f'./history{exp_name}/{experiment_id}/best_model_NPP.pth')
 
             if early_stopping(epoch, val_loss):
                 break  # Stop training early
@@ -94,9 +94,9 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
 
     # Reload the best model after training
     if (sigma == 0):
-        model.load_state_dict(torch.load(f'./history/{experiment_id}/current_model_MSE.pth'))
+        model.load_state_dict(torch.load(f'./history{exp_name}/{experiment_id}/current_model_MSE.pth'))
     else:
-        model.load_state_dict(torch.load(f'./history/{experiment_id}/current_model_NPP.pth'))
+        model.load_state_dict(torch.load(f'./history{exp_name}/{experiment_id}/current_model_NPP.pth'))
 
     return model, train_losses, val_losses, global_best_val_loss
 
