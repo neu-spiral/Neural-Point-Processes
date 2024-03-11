@@ -356,7 +356,7 @@ def main():
     test_size = dataset_size - train_size - val_size
 
 
-    if os.path.exists(f"./data/{dataset}/train_indices.py"):
+    if os.path.exists(f"./data/{dataset}/train_indices.npy"):
         train_indices = np.load(f'./data/{dataset}/train_indices.npy')
         val_indices = np.load(f'./data/{dataset}/val_indices.npy')
         test_indices = np.load(f'./data/{dataset}/test_indices.npy')
