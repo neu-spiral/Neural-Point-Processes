@@ -88,7 +88,7 @@ def custom_collate_fn(batch):
 
 
 def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader,
-                    test_loader, input_channel, epochs, val_every_epoch, learning_rates, config, device, num_runs=3):
+                    test_loader, input_channel, epochs, val_every_epoch, learning_rates, config, device, num_runs=3, exp_name=""):
     GP_test_losses_npp_true = []
     test_losses_npp_true = []
     test_losses_npp_false = []
@@ -106,9 +106,9 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     losses = {}
 
     # Create storage directory and store the experiment configuration
-    if not os.path.exists(f'./history/{experiment_id}'):
-        os.makedirs(f'./history/{experiment_id}')
-    with open(f"./history/{experiment_id}/config.json", "w") as outfile:
+    if not os.path.exists(f'./history{exp_name}/{experiment_id}'):
+        os.makedirs(f'./history{exp_name}/{experiment_id}')
+    with open(f"./history{exp_name}/{experiment_id}/config.json", "w") as outfile:
         json.dump(config, outfile)
 
     for run in range(num_runs):
@@ -131,7 +131,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
                                                                      input_channel, epochs, \
                                                                      val_every_epoch, learning_rates[count][1],
                                                                      criterion, optimizer, device, early_stopping,
-                                                                     experiment_id, best_val_loss_MSE, manual_lr, sigma=0)
+                                                                     experiment_id, exp_name, best_val_loss_MSE, manual_lr, sigma=0)
         losses[f"MSE_run{run}_train"] = train_losses
         losses[f"MSE_run{run}_val"] = val_losses
         if best_val_loss < best_val_loss_MSE:
@@ -155,7 +155,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
                                                                          input_channel, epochs, \
                                                                          val_every_epoch, learning_rates[count][1],
                                                                          criterion, optimizer, device, early_stopping,
-                                                                         experiment_id, best_val_loss_NPP, manual_lr, sigma=sigma)
+                                                                         experiment_id, exp_name, best_val_loss_NPP, manual_lr, sigma=sigma)
             losses[f"NPP_run{run}_sigma{sigma}_train"] = train_losses
             losses[f"NPP_run{run}_sigma{sigma}_val"] = val_losses
             if best_val_loss < best_val_loss_NPP:
@@ -178,28 +178,28 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         GP_test_losses_npp_true.append(GP_test_losses_vs_sigma_npp_true)
         r2_losses_npp_true.append(R2_losses_vs_sigma_npp_true)
         GP_r2_losses_npp_true.append(GP_R2_losses_vs_sigma_npp_true)
-    with open(f"./history/{experiment_id}/losses.json", "w") as outfile:
+    with open(f"./history{exp_name}/{experiment_id}/losses.json", "w") as outfile:
         json.dump(losses, outfile)
     return GP_test_losses_npp_true, test_losses_npp_true, test_losses_npp_false, r2_losses_npp_false, r2_losses_npp_true, GP_r2_losses_npp_true, best_sigma_NPP, experiment_id
 
 
 # Function to run the pipeline and save data
 def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,
-                          input_channel, epochs, val_every_epoch, learning_rates, config, num_runs, device):
+                          input_channel, epochs, val_every_epoch, learning_rates, config, num_runs, exp_name, device):
     # Run the pipeline
     GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, r2_loss_npp_false, r2_losses_npp_true, GP_r2_losses_npp_true, best_sigma_NPP, experiment_id = run_pipeline_ci(
         sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, epochs,
-        val_every_epoch, learning_rates, config, device, num_runs)
+        val_every_epoch, learning_rates, config, device, num_runs, exp_name)
     partial_percent = config['partial_percent']
     # Run final testing
     autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=config["deeper"]).to(device)
     # MSE
-    autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
+    autoencoder.load_state_dict(torch.load(f'./history{exp_name}/{experiment_id}/best_model_MSE.pth'))
     best_MSE_test_loss, best_R2_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device,
                                                            partial_label_GP=False,
                                                            partial_percent=partial_percent)
     # NPP
-    autoencoder.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_NPP.pth'))
+    autoencoder.load_state_dict(torch.load(f'./history{exp_name}/{experiment_id}/best_model_NPP.pth'))
     best_NPP_test_loss, best_NPP_R2_test_loss = evaluate_model(autoencoder, test_loader, input_channel, device,
                                                                partial_label_GP=False,
                                                                partial_percent=partial_percent)
@@ -208,14 +208,14 @@ def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, trai
                                                                      partial_percent=partial_percent)
     print("start saving!")
     # Save losses
-    save_loss(test_loss_npp_true, f'./history/{experiment_id}/test_loss_npp_true.npy')
-    save_loss(test_loss_npp_false, f'./history/{experiment_id}/test_loss_npp_false.npy')
-    save_loss(GP_test_loss_npp_true, f'./history/{experiment_id}/GP_test_loss_npp_true.npy')
+    save_loss(test_loss_npp_true, f'./history{exp_name}/{experiment_id}/test_loss_npp_true.npy')
+    save_loss(test_loss_npp_false, f'./history{exp_name}/{experiment_id}/test_loss_npp_false.npy')
+    save_loss(GP_test_loss_npp_true, f'./history{exp_name}/{experiment_id}/GP_test_loss_npp_true.npy')
     # Save r2 scores
-    save_loss(r2_loss_npp_false, f'./history/{experiment_id}/r2_loss_npp_false.npy')
-    save_loss(r2_losses_npp_true, f'./history/{experiment_id}/r2_losses_npp_true.npy')
-    save_loss(GP_r2_losses_npp_true, f'./history/{experiment_id}/GP_r2_losses_npp_true.npy')
-    f = open(f"./history/{experiment_id}/results.txt", "w")
+    save_loss(r2_loss_npp_false, f'./history{exp_name}/{experiment_id}/r2_loss_npp_false.npy')
+    save_loss(r2_losses_npp_true, f'./history{exp_name}/{experiment_id}/r2_losses_npp_true.npy')
+    save_loss(GP_r2_losses_npp_true, f'./history{exp_name}/{experiment_id}/GP_r2_losses_npp_true.npy')
+    f = open(f"./history{exp_name}/{experiment_id}/results.txt", "w")
     f.write(
         f"Results {experiment_id}:\n MSE: {best_MSE_test_loss}, R2: {best_R2_test_loss} "
         f"| NPP (sigma {best_sigma_NPP}): {best_NPP_test_loss}, R2: {best_NPP_R2_test_loss}; GP: {GP_best_NPP_test_loss}, R2: {GP_best_NPP_r2_test_loss}")
@@ -259,6 +259,9 @@ def parse_args():
     # Evaluation mode
     parser.add_argument("--experiment_id", type=int, default=0,
                         help="Provide an experiment id to test the produced models")
+    
+    # Experiment title
+    parser.add_argument("--experiment_name", type=str, default=None, help="Define if you want to save the generated experiments in an specific folder")
 
     return parser.parse_args()
 
@@ -281,6 +284,7 @@ def main():
     n_pins = args.n_pins
     r = args.r
     partial_percent = args.partial_percent
+    exp_name = '/' + args.experiment_name if args.experiment_name is not None else ""
 
     # Set your hyperparameters
     epochs = args.epochs
@@ -408,21 +412,21 @@ def main():
     loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,
                                                               train_loader, val_loader, test_loader, \
                                                               input_channel, epochs, val_every_epoch, best_lrs, config,
-                                                              num_runs, device)
+                                                              num_runs, exp_name, device)
 
     # Plot and save the plot using the saved data
-    plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, results_dir=f'./history/{experiment_id}')
+    plot_and_save(loss_vs_sigma_data, sigmas, dataset, learning_rate, results_dir=f'./history{exp_name}/{experiment_id}')
 
     # Testing
-    if not os.path.exists(f'./history/{experiment_id}'):
+    if not os.path.exists(f'./history{exp_name}/{experiment_id}'):
         raise Exception(f"Could not find experiment with id: {experiment_id}")
     else:
         autoencoder_MSE = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
         autoencoder_NPP = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
         # Load models
         try:
-            autoencoder_MSE.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_MSE.pth'))
-            autoencoder_NPP.load_state_dict(torch.load(f'./history/{experiment_id}/best_model_NPP.pth'))
+            autoencoder_MSE.load_state_dict(torch.load(f'./history{exp_name}/{experiment_id}/best_model_MSE.pth'))
+            autoencoder_NPP.load_state_dict(torch.load(f'./history{exp_name}/{experiment_id}/best_model_NPP.pth'))
         except:
             raise Exception(
                 "The model you provided does not correspond with the selected architecture. Please revise and try again.")
@@ -437,7 +441,7 @@ def main():
                                                       partial_label_GP=True, partial_percent=percent)
             # Write output into file
             filename = f"test_{folder.split('/')[0]}_{percent}.txt"
-            with open(f"./history/{experiment_id}/{filename}", "w") as f:
+            with open(f"./history{exp_name}/{experiment_id}/{filename}", "w") as f:
                 f.write(
                     f"MSE: {best_MSE_test_loss}, R2: {best_R2_test_loss_MSE} "
                     f"| NPP: {best_NPP_test_loss}, R2: {best_R2_test_loss_NPP}; GP: {GP_best_NPP_test_loss}, R2: {best_R2_test_loss_GP}")
