@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import argparse
 import time
 from tools.models import *
+from torch.utils.data import Subset
 
 
 class CustomLRFinder:
@@ -333,12 +334,20 @@ def main():
             config['n_pins'] = (28 // d + 1) ** 2
         else:
             data_folder = f"./data/{folder}/random_{n_pins}pins"
-    else:  # dataset == "Building"
-        raise Exception("Building option is still not implemented.")
-
+    elif dataset == "Building":
+        if mesh:
+            data_folder = f"./data/{folder}/mesh_{d}_step"
+        else:
+            data_folder = f"./data/folder/random_n_pins_{n_pins}"
+    
+    if dataset == "Building":
+        resize = Resize100
+    else:
+        resize = Resize
+        
     transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
-        Resize()  # Resize to 100x100
+        resize()  # Resize to 100x100
     ])
 
     transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
@@ -350,10 +359,23 @@ def main():
     val_size = int(0.10 * dataset_size)
     test_size = dataset_size - train_size - val_size
 
-    # Split the dataset into train, validation, and test sets
-    train_dataset, val_dataset, test_dataset = random_split(
-        transformed_dataset, [train_size, val_size, test_size]
-    )
+
+    if os.path.exists(f"./data/{dataset}/train_indices.py"):
+        train_indices = np.load(f'./data/{dataset}/train_indices.npy')
+        val_indices = np.load(f'./data/{dataset}/val_indices.npy')
+        test_indices = np.load(f'./data/{dataset}/test_indices.npy')
+        # Use the indices to create new datasets
+        train_dataset = Subset(transformed_dataset, train_indices)
+        val_dataset = Subset(transformed_dataset, val_indices)
+        test_dataset = Subset(transformed_dataset, test_indices)
+    else:
+        # Split the dataset into train, validation, and test sets
+        train_dataset, val_dataset, test_dataset = random_split(
+            transformed_dataset, [train_size, val_size, test_size]
+        )
+        np.save(f'./data/{dataset}/train_indices.npy', train_dataset.indices)
+        np.save(f'./data/{dataset}/val_indices.npy', val_dataset.indices)
+        np.save(f'./data/{dataset}/test_indices.npy', test_dataset.indices)
 
     # Create your DataLoader with the custom_collate_fn
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
