@@ -85,7 +85,7 @@ def _make_te(self, dim_in, dim_out):
 
 
 class UNet(nn.Module):
-    def __init__(self, input_channels=1, dims=[10,20,40,80], n_steps=1000, time_emb_dim=100):
+    def __init__(self, input_channels=1, shape=28, dims=[10,20,40,80], n_steps=1000, time_emb_dim=100):
         super(UNet, self).__init__()
         self.output_channels = input_channels
         # Sinusoidal embedding
@@ -96,25 +96,25 @@ class UNet(nn.Module):
         # First half
         self.te1 = self._make_te(time_emb_dim, input_channels)
         self.b1 = nn.Sequential(
-            MyBlock((input_channels, 28, 28), input_channels, dims[0]),
-            MyBlock((dims[0], 28, 28), dims[0], dims[0]),
-            MyBlock((dims[0], 28, 28), dims[0], dims[0])
+            MyBlock((input_channels, shape, shape), input_channels, dims[0]),
+            MyBlock((dims[0], shape, shape), dims[0], dims[0]),
+            MyBlock((dims[0], shape, shape), dims[0], dims[0])
         )
         self.down1 = nn.Conv2d(dims[0], dims[0], 4, 2, 1)
 
         self.te2 = self._make_te(time_emb_dim, dims[0])
         self.b2 = nn.Sequential(
-            MyBlock((dims[0], 14, 14), dims[0], dims[1]),
-            MyBlock((dims[1], 14, 14), dims[1], dims[1]),
-            MyBlock((dims[1], 14, 14), dims[1], dims[1])
+            MyBlock((dims[0], shape//2, shape//2), dims[0], dims[1]),
+            MyBlock((dims[1], shape//2, shape//2), dims[1], dims[1]),
+            MyBlock((dims[1], shape//2, shape//2), dims[1], dims[1])
         )
         self.down2 = nn.Conv2d(dims[1], dims[1], 4, 2, 1)
-
+        
         self.te3 = self._make_te(time_emb_dim, dims[1])
         self.b3 = nn.Sequential(
-            MyBlock((dims[1], 7, 7), dims[1], dims[2]),
-            MyBlock((dims[2], 7, 7), dims[2], dims[2]),
-            MyBlock((dims[2], 7, 7), dims[2], dims[2])
+            MyBlock((dims[1], shape//4, shape//4), dims[1], dims[2]),
+            MyBlock((dims[2], shape//4, shape//4), dims[2], dims[2]),
+            MyBlock((dims[2], shape//4, shape//4), dims[2], dims[2])
         )
         self.down3 = nn.Sequential(
             nn.Conv2d(dims[2], dims[2], 2, 1),
@@ -125,9 +125,9 @@ class UNet(nn.Module):
         # Bottleneck
         self.te_mid = self._make_te(time_emb_dim, dims[2])
         self.b_mid = nn.Sequential(
-            MyBlock((dims[2], 3, 3), dims[2], dims[1]),
-            MyBlock((dims[1], 3, 3), dims[1], dims[1]),
-            MyBlock((dims[1], 3, 3), dims[1], dims[2])
+            MyBlock((dims[2], shape//8, shape//8), dims[2], dims[1]),
+            MyBlock((dims[1], shape//8, shape//8), dims[1], dims[1]),
+            MyBlock((dims[1], shape//8, shape//8), dims[1], dims[2])
         )
 
         # Second half
@@ -139,25 +139,25 @@ class UNet(nn.Module):
 
         self.te4 = self._make_te(time_emb_dim, dims[3])
         self.b4 = nn.Sequential(
-            MyBlock((dims[3], 7, 7), dims[3], dims[2]),
-            MyBlock((dims[2], 7, 7), dims[2], dims[1]),
-            MyBlock((dims[1], 7, 7), dims[1], dims[1])
+            MyBlock((dims[3],  shape//4, shape//4), dims[3], dims[2]),
+            MyBlock((dims[2], shape//4, shape//4), dims[2], dims[1]),
+            MyBlock((dims[1], shape//4, shape//4), dims[1], dims[1])
         )
 
         self.up2 = nn.ConvTranspose2d(dims[1], dims[1], 4, 2, 1)
         self.te5 = self._make_te(time_emb_dim, dims[2])
         self.b5 = nn.Sequential(
-            MyBlock((dims[2], 14, 14), dims[2], dims[1]),
-            MyBlock((dims[1], 14, 14), dims[1], dims[0]),
-            MyBlock((dims[0], 14, 14), dims[0], dims[0])
+            MyBlock((dims[2], shape//2, shape//2), dims[2], dims[1]),
+            MyBlock((dims[1], shape//2, shape//2), dims[1], dims[0]),
+            MyBlock((dims[0], shape//2, shape//2), dims[0], dims[0])
         )
 
         self.up3 = nn.ConvTranspose2d(dims[0], dims[0], 4, 2, 1)
         self.te_out = self._make_te(time_emb_dim, dims[1])
         self.b_out = nn.Sequential(
-            MyBlock((dims[1], 28, 28), dims[1], dims[0]),
-            MyBlock((dims[0], 28, 28), dims[0], dims[0]),
-            MyBlock((dims[0], 28, 28), dims[0], dims[0], normalize=False)
+            MyBlock((dims[1], shape, shape), dims[1], dims[0]),
+            MyBlock((dims[0], shape, shape), dims[0], dims[0]),
+            MyBlock((dims[0], shape, shape), dims[0], dims[0], normalize=False)
         )
 
         self.conv_out = nn.Conv2d(dims[0], self.output_channels, 3, 1, 1)
