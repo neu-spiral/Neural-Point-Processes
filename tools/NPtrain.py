@@ -3,23 +3,57 @@ from random import randint
 from tools.NPmodels import NeuralProcessImg
 from torch import nn
 from torch.distributions.kl import kl_divergence
+import numpy as np
+from torcheval.metrics.functional import r2_score
 
 
-def process_batch(batch):
-    x_train = batch['image'][:, :input_channel, :, :].to(self.device)
-    p_train = [tensor.to(self.device) for tensor in batch['pins']]
-    y_train = [tensor.to(self.device) for tensor in batch['outputs']] 
+class EarlyStoppingCallback:
+    def __init__(self, patience=10, min_delta=0.001):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.wait = 0
+        self.best_loss = float('inf')
+
+    def __call__(self, epoch, val_loss):
+        if val_loss < self.best_loss - self.min_delta:
+            self.best_loss = val_loss
+            self.wait = 0
+        else:
+            self.wait += 1
+            if self.wait >= self.patience:
+                print(f"Early stopping after {epoch} epochs.")
+                return True  # Stop training
+        return False  # Continue training
+
+
+def batch_r2(pred, target):
+    print("batch R2 shapes", pred.shape, target.shape)
+    # Calculate R2 score for each pair and store the results
+    r2_scores = 0
+    for i in range(len(pred)):
+        r2 = r2_score(pred[i], target[i])
+        r2_scores += r2
+
+    # Calculate the average R2 score
+    avg_r2 = r2_scores/len(pred)
+    return avg_r2
+
+
+def process_batch(batch, device):
+    pins = [tensor.to(device) for tensor in batch['pins']]
+    outputs = [tensor.to(device) for tensor in batch['outputs']]
     # get np arrays from lists
-    np_pins = np.dstack(pins).transpose((2, 0, 1))
-    np_outputs = np.dstack(outputs).transpose((2, 1, 0))
+    torch_pins = torch.dstack(pins).permute(2, 0, 1)  # stack into (batch, n_pins, 2)
+    torch_outputs = torch.dstack(outputs).permute(2, 1, 0)  # stack into (batch, n_pins, 1)
     # get half context and half target for training
-    num_context = len(x_train)//2
-    x_context = np_pins[:,:num_context, :]
-    y_context = np_outputs[:, :num_context, :]
-    x_target = np_pins
-    y_target = np_outputs
+    num_context = len(pins[0]) // 2
+    x_context = torch_pins[:, :num_context, :]
+    y_context = torch_outputs[:, :num_context, :]
+    x_target = torch_pins
+    y_target = torch_outputs
     return x_context, y_context, x_target, y_target
-    
+
+
 class NeuralProcessTrainer():
     """
     Class to handle training of Neural Processes for functions and images.
@@ -44,17 +78,19 @@ class NeuralProcessTrainer():
     print_freq : int
         Frequency with which to print loss information during training.
     """
-    def __init__(self, device, neural_process, optimizer, experiment_id, print_freq=100):
+
+    def __init__(self, device, neural_process, optimizer, early_stopping, experiment_id, print_freq=10):
         self.device = device
         self.neural_process = neural_process
         self.optimizer = optimizer
         self.print_freq = print_freq
         self.experiment_id = experiment_id
-
+        self.early_stopping = early_stopping
         # Check if neural process is for images
         self.is_img = isinstance(self.neural_process, NeuralProcessImg)
         self.train_losses = []
         self.val_losses = []
+        self.best_val_loss = float('inf')
 
     def train(self, train_dataloader, val_dataloader, epochs):
         """
@@ -67,13 +103,12 @@ class NeuralProcessTrainer():
         epochs : int
             Number of epochs to train for.
         """
-        best_val_loss = float('inf')
         for epoch in range(epochs):
             total_loss = 0.
             for i, batch in enumerate(train_dataloader):
                 self.optimizer.zero_grad()
                 # Create context and target points and apply neural process
-                x_context, y_context, x_target, y_target = process_batch(batch)
+                x_context, y_context, x_target, y_target = process_batch(batch, self.device)
                 p_y_pred, q_target, q_context = \
                     self.neural_process(x_context, y_context, x_target, y_target)
                 loss = self._loss(p_y_pred, y_target, q_target, q_context)
@@ -82,13 +117,13 @@ class NeuralProcessTrainer():
                 total_loss += loss.item()
             total_loss /= len(train_dataloader)
             self.train_losses.append(total_loss)
-            print("Epoch: {}, Avg_loss: {:.3f}".format(epoch, total_loss))      
+            print("Epoch: {}, Avg_loss: {:.3f}".format(epoch, total_loss))
 
             if epoch % self.print_freq == 0:
                 val_loss = 0.0
                 with torch.no_grad():
-                    for val_batch in val_dataloader:                      
-                        x_context_val, y_context_val, x_target_val, y_target_val = process_batch(val_batch)
+                    for val_batch in val_dataloader:
+                        x_context_val, y_context_val, x_target_val, y_target_val = process_batch(val_batch, self.device)
                         p_y_pred_val, q_target_val, q_context_val = \
                             self.neural_process(x_context_val, y_context_val, x_target_val, y_target_val)
                         loss_val = self._loss(p_y_pred, y_target, q_target, q_context)
@@ -96,16 +131,16 @@ class NeuralProcessTrainer():
                 val_loss /= len(val_dataloader)
                 self.val_losses.append(val_loss)
                 print("Epoch: {}, Val_loss {:.3f}".format(epoch, val_loss))
-                if val_loss < best_val_loss:
-                    best_val_loss = val_loss
+                if val_loss < self.best_val_loss:
+                    self.best_val_loss = val_loss
                     # Save the model
-                    torch.save(model.state_dict(), f'./history/{self.experiment_id}/model_NP.pth')
-                if early_stopping(epoch, val_loss):
+                    torch.save(self.neural_process.state_dict(), f'./history/{self.experiment_id}/model_NP.pth')
+                if self.early_stopping(epoch, val_loss):
                     break  # Stop training early
 
         self.neural_process.load_state_dict(torch.load(f'./history/{self.experiment_id}/model_NP.pth'))
 
-    return model, train_losses, val_losses, global_best_val_loss
+        # return self.neural_process, self.train_losses, self.val_losses
 
     def _loss(self, p_y_pred, y_target, q_target, q_context):
         """
@@ -132,3 +167,42 @@ class NeuralProcessTrainer():
         # r_dim (since r_dim is dimension of normal distribution)
         kl = kl_divergence(q_target, q_context).mean(dim=0).sum()
         return -log_likelihood + kl
+
+
+def NP_prediction(model, x_context, y_context, x_target):
+    model.eval()
+    y2 = model(x_context, y_context, x_target, y_target=None)
+    return y2
+
+
+def evaluate_np(model, dataloader, device, partial_percent=0, hidden_samples=0.5):
+    # Partial percent is the percentage of hidden labels you want to rebeal
+    model.eval()
+    total_loss = 0.0
+    total_r2 = 0.0
+    if partial_percent == 0:
+        print("Error: partial_percent cannot be 0.")
+        return None
+    else:
+        with torch.no_grad():
+            for batch in dataloader:
+                # convert batch into neural process input format
+                x_context, y_context, x_target, y_target = process_batch(batch, device)
+                # divide batch into test and partial label (hidden)
+                total_hidden_samples = int(y_target.shape[1] * hidden_samples)
+                revealed_samples = int(total_hidden_samples * partial_percent)
+                # context data is the partial revealed label
+                x_context = x_context[:, :revealed_samples, :]
+                y_context = y_context[:, :revealed_samples, :]
+                # target data includes both the revealed and the to-be-tested data
+                x_target = torch.cat((x_target[:, :revealed_samples, :], x_target[:, total_hidden_samples:, :]), dim=1)
+                y_true = y_target[:, total_hidden_samples:, :]
+                NP_outputs = NP_prediction(model, x_context, y_context, x_target)
+                y_pred = NP_outputs.mean[:, revealed_samples::]
+                # per image per pin MSE loss
+                mse_error = (y_true - y_pred)  # get the mean of predictions
+                total_r2 += batch_r2(y_pred, y_true)
+                total_loss += torch.sum((mse_error) ** 2) / (y_pred.shape[0] * y_pred.shape[1])
+
+        total_loss /= len(dataloader)
+        return total_loss

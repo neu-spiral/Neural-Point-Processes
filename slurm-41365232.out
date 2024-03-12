@@ -1,0 +1,40 @@
+Executing training: dataset PinMNIST, feature AE, mode mesh, d: 3
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: dataset PinMNIST, feature AE, mode mesh, d: 10
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: feature AE , mode random, npins 10
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: feature AE , mode random, npins 100
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: dataset PinMNIST, feature DDPM, mode mesh, d: 3
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: dataset PinMNIST, feature DDPM, mode mesh, d: 10
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: feature DDPM , mode random, npins 10
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
+Executing training: feature DDPM , mode random, npins 100
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 4, in <module>
+    from torchvision import datasets, transforms
+ModuleNotFoundError: No module named 'torchvision'
