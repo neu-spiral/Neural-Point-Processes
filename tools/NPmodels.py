@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.distributions import Normal
+from torch.distributions.kl import kl_divergence
 
 
 class Encoder(nn.Module):
@@ -21,6 +22,7 @@ class Encoder(nn.Module):
     r_dim : int
         Dimension of output representation r.
     """
+
     def __init__(self, x_dim, y_dim, h_dim, r_dim):
         super(Encoder, self).__init__()
 
@@ -62,6 +64,7 @@ class MuSigmaEncoder(nn.Module):
     z_dim : int
         Dimension of latent variable z.
     """
+
     def __init__(self, r_dim, z_dim):
         super(MuSigmaEncoder, self).__init__()
 
@@ -104,6 +107,7 @@ class Decoder(nn.Module):
     y_dim : int
         Dimension of y values.
     """
+
     def __init__(self, x_dim, z_dim, h_dim, y_dim):
         super(Decoder, self).__init__()
 
@@ -141,21 +145,21 @@ class Decoder(nn.Module):
         # from (batch_size, z_dim) to (batch_size, num_points, z_dim)
         z = z.unsqueeze(1).repeat(1, num_points, 1)
         # Flatten x and z to fit with linear layer
-        x_flat = x.view(batch_size * num_points, self.x_dim)
-        z_flat = z.view(batch_size * num_points, self.z_dim)
+        x_flat = x.reshape(batch_size * num_points, self.x_dim)
+        z_flat = z.reshape(batch_size * num_points, self.z_dim)
         # Input is concatenation of z with every row of x
         input_pairs = torch.cat((x_flat, z_flat), dim=1)
         hidden = self.xz_to_hidden(input_pairs)
         mu = self.hidden_to_mu(hidden)
         pre_sigma = self.hidden_to_sigma(hidden)
         # Reshape output into expected shape
-        mu = mu.view(batch_size, num_points, self.y_dim)
-        pre_sigma = pre_sigma.view(batch_size, num_points, self.y_dim)
+        mu = mu.reshape(batch_size, num_points, self.y_dim)
+        pre_sigma = pre_sigma.reshape(batch_size, num_points, self.y_dim)
         # Define sigma following convention in "Empirical Evaluation of Neural
         # Process Objectives" and "Attentive Neural Processes"
         sigma = 0.1 + 0.9 * F.softplus(pre_sigma)
         return mu, sigma
-    
+
 
 class NeuralProcess(nn.Module):
     """
@@ -178,6 +182,7 @@ class NeuralProcess(nn.Module):
     h_dim : int
         Dimension of hidden layer in encoder and decoder.
     """
+
     def __init__(self, x_dim, y_dim, r_dim, z_dim, h_dim):
         super(NeuralProcess, self).__init__()
         self.x_dim = x_dim
@@ -218,12 +223,12 @@ class NeuralProcess(nn.Module):
         """
         batch_size, num_points, _ = x.size()
         # Flatten tensors, as encoder expects one dimensional inputs
-        x_flat = x.view(batch_size * num_points, self.x_dim)
-        y_flat = y.contiguous().view(batch_size * num_points, self.y_dim)
+        x_flat = x.reshape(batch_size * num_points, self.x_dim)
+        y_flat = y.reshape(batch_size * num_points, self.y_dim)
         # Encode each point into a representation r_i
         r_i_flat = self.xy_to_r(x_flat, y_flat)
         # Reshape tensors into batches
-        r_i = r_i_flat.view(batch_size, num_points, self.r_dim)
+        r_i = r_i_flat.reshape(batch_size, num_points, self.r_dim)
         # Aggregate representations r_i into a single representation r
         r = self.aggregate(r_i)
         # Return parameters of distribution
@@ -286,16 +291,13 @@ class NeuralProcess(nn.Module):
 
             return p_y_pred
 
-        
+
 class NeuralProcessImg(nn.Module):
     """
     Wraps regular Neural Process for image processing.
 
     Parameters
     ----------
-    img_size : tuple of ints
-        E.g. (1, 28, 28) or (3, 32, 32)
-
     r_dim : int
         Dimension of output representation r.
 
@@ -305,15 +307,14 @@ class NeuralProcessImg(nn.Module):
     h_dim : int
         Dimension of hidden layer in encoder and decoder.
     """
-    def __init__(self, img_size, r_dim, z_dim, h_dim):
+
+    def __init__(self, r_dim, z_dim, h_dim):
         super(NeuralProcessImg, self).__init__()
-        self.img_size = img_size
-        self.num_channels, self.height, self.width = img_size
         self.r_dim = r_dim
         self.z_dim = z_dim
         self.h_dim = h_dim
 
-        self.neural_process = NeuralProcess(x_dim=2, y_dim=self.num_channels,
+        self.neural_process = NeuralProcess(x_dim=2, y_dim=1,
                                             r_dim=r_dim, z_dim=z_dim,
                                             h_dim=h_dim)
 

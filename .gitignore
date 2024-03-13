@@ -170,4 +170,5 @@ history/
 apikey.txt
 results/
 datasets/
+scripts/*.bash
 processing/*.csv

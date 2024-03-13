@@ -1,36 +1,33 @@
 #!/bin/bash
-# source /home/shi.cheng/anaconda3/etc/profile.d/conda.sh
-# conda activate dsk
-my_dir = /work/DNAL/shi.cheng/NPP/Satellite_Fusion
-# cd $pwd
-n = 1000
 
-for dataset in PinMNIST #Synthetic Building
+#activate your env before running this
+
+for dataset in Building #PinMNIST Synthetic
 do
-    for feature in AE DDPM
+    for feature in AE #DDPM
     do
-        for partial_percent in '0.2' '0.5' '0.8'
+        for d in 7 10 32
         do
-            for mode in mesh random
+            for mode in mesh
             do
-                if [ "$mode" == "mesh" ]; then
-                    for d in '3' '10'
-                    do
-                        for n_pins in '10'
-                        do
-                            sbatch /my_dir/batch_run_baselines.bash $dataset $feature $mode $n $d $n_pins $partial_percent
-                        done
-                    done
-                elif [ "$mode" == "random" ]; then
-                    for d in '10'
-                    do
-                        for n_pins in '10' '100'
-                        do       
-                            sbatch /my_dir/batch_run_baselines.bash $dataset $feature $mode $n $d $n_pins $partial_percent
-                        done
-                    done
-                fi
+                for n_pins in 10
+                do
+                  echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
+                  sbatch /work/DNAL/shi.cheng/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins
+                done
             done
         done
+       for n_pins in 10 100 200
+       do
+          for mode in random
+          do
+              for d in 10
+              do
+                echo "Executing training: dataset $dataset, feature $feature, mode random, npins $n_pins"
+                sbatch /work/DNAL/shi.cheng/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins
+              done
+          done
+
+       done
     done
 done
