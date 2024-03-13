@@ -7,32 +7,32 @@ for dataset in Building #PinMNIST Synthetic
 do
     for feature in AE #DDPM
     do
-        for d in 32 # 10
+        for d in 7 #10 32
         do
             echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
-            python npp.py --dataset $dataset --feature $feature --mode mesh --num_encoder 64 32 --num_decoder 64 --n 1000 --d $d --epochs 1000 --num_runs 1 --experiment_name Building_mesh
+            python npp.py --dataset $dataset --feature $feature --mode mesh --num_encoder 64 32 --num_decoder 64 --n 1000 --d $d --epochs 1000 --num_runs 3 --experiment_name Building_mesh_10
         done
-#        for n_pins in 10 100
-#        do
-#            echo "Executing training: dataset $dataset, feature $feature, mode random, npins $n_pins"
-#            python npp.py --dataset $dataset --feature $feature --mode random --num_encoder 64 32 --num_decoder 64 --n 1000 --n_pins $n_pins --epochs 10 --num_runs 1 --experiment_name PinMNIST_random
-#        done
+       for n_pins in 100 200 #10 
+       do
+           echo "Executing training: dataset $dataset, feature $feature, mode random, npins $n_pins"
+           python npp.py --dataset $dataset --feature $feature --mode random --num_encoder 64 32 --num_decoder 64 --n 1000 --n_pins $n_pins --epochs 1000 --num_runs 3 --experiment_name Building_random_10
+       done
     done
 done
 
-# for dataset in PinMNIST #Synthetic
-# do
-#    for feature in AE #DDPM
-#    do
-#        for d in 3 10
-#        do
-#            echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
-#            python npp.py --dataset $dataset --feature $feature --mode mesh --num_encoder 64 32  --num_decoder 64 --n 1000 --d $d --epochs 100 --num_runs 1 --deeper
-#        done
-#        for n_pins in 10 100
-#        do
-#            echo "Executing training: feature $feature , mode random, npins $n_pins"
-#            python npp.py --dataset $dataset --feature $feature --mode random --num_encoder 64 32  --num_decoder 64 --n 1000 --n_pins $n_pins --epochs 100 --num_runs 1 --deeper
-#        done
-#    done
-#done
+for dataset in PinMNIST #Synthetic
+do
+   for feature in AE #DDPM
+   do
+       for d in 3 10
+       do
+           echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
+           python npp.py --dataset $dataset --feature $feature --mode mesh --num_encoder 64 32  --num_decoder 64 --n 1000 --d $d --epochs 100 --num_runs 1 --deeper
+       done
+       for n_pins in 10 100
+       do
+           echo "Executing training: feature $feature , mode random, npins $n_pins"
+           python npp.py --dataset $dataset --feature $feature --mode random --num_encoder 64 32  --num_decoder 64 --n 1000 --n_pins $n_pins --epochs 100 --num_runs 1 --deeper
+       done
+   done
+done
