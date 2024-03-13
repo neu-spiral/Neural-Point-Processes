@@ -339,7 +339,7 @@ def main():
             data_folder = f"./data/{folder}/processed/mesh_{d}_step"
             config['n_pins'] = (100 // d + 1) ** 2
         else:
-            data_folder = f"./data/folder/processed/random_n_pins_{n_pins}"
+            data_folder = f"./data/{folder}/processed/random_n_pins_{n_pins}"
     
     if dataset == "Building":
         transform = transforms.Compose([
