@@ -27,7 +27,6 @@ class EarlyStoppingCallback:
 
 
 def batch_r2(pred, target):
-    print("batch R2 shapes", pred.shape, target.shape)
     # Calculate R2 score for each pair and store the results
     r2_scores = 0
     for i in range(len(pred)):
@@ -203,6 +202,7 @@ def evaluate_np(model, dataloader, device, partial_percent=0, hidden_samples=0.5
                 mse_error = (y_true - y_pred)  # get the mean of predictions
                 total_r2 += batch_r2(y_pred, y_true)
                 total_loss += torch.sum((mse_error) ** 2) / (y_pred.shape[0] * y_pred.shape[1])
-
+                
+        total_r2 /= len(dataloader)
         total_loss /= len(dataloader)
-        return total_loss
+        return total_loss, total_r2
