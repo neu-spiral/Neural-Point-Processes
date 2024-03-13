@@ -6,7 +6,62 @@ from torch.distributions.kl import kl_divergence
 import numpy as np
 from torcheval.metrics.functional import r2_score
 
+class NPLRFinder:
+    def __init__(self, model, optimizer, device='cuda'):
+        self.model = model
+        self.optimizer = optimizer
+        self.device = device
+        self.history = {'lr': [], 'loss': []}
 
+    def find_lr(self, train_loader, input_channel, start_lr=1e-6, end_lr=1, num_iter=20,smooth_f=0.05):
+        model = self.model.to(self.device)
+        optimizer = self.optimizer
+        device = self.device
+        model.train()
+
+        lr_step = (end_lr / start_lr) ** (1 / num_iter)
+        lr = start_lr
+
+        for iteration in range(num_iter):
+            optimizer.param_groups[0]['lr'] = lr
+
+            total_loss = 0.0
+            for batch in train_loader:
+                x_context, y_context, x_target, y_target = process_batch(batch, self.device)
+                optimizer.zero_grad()
+                p_y_pred, q_target, q_context = model(x_context, y_context, x_target, y_target)
+                loss = self._loss(p_y_pred, y_target, q_target, q_context)
+                loss.backward()
+                self.optimizer.step()
+                total_loss += loss.item()
+
+            avg_loss = total_loss / len(train_loader)
+            self.history['lr'].append(lr)
+            self.history['loss'].append(avg_loss)
+
+            lr *= lr_step
+            
+    def plot_lr_finder(self):
+        plt.plot(self.history['lr'], self.history['loss'])
+        plt.xscale('log')  # Use a logarithmic scale for better visualization
+        plt.xlabel('Learning Rate')
+        plt.ylabel('Loss')
+        plt.title('Learning Rate Finder Curve')
+        plt.show()
+        
+    def find_best_lr(self, skip_start=3, skip_end=3):
+        # Find the index of the minimum loss in the specified range
+        min_loss_index = skip_start + np.argmin(self.history['loss'][skip_start:-skip_end])
+        # Output the learning rate corresponding to the minimum loss
+        best_lr = self.history['lr'][min_loss_index]
+        return best_lr
+    
+    def _loss(self, p_y_pred, y_target, q_target, q_context):
+        log_likelihood = p_y_pred.log_prob(y_target).mean(dim=0).sum()
+        kl = kl_divergence(q_target, q_context).mean(dim=0).sum()
+        return -log_likelihood + kl
+    
+    
 class EarlyStoppingCallback:
     def __init__(self, patience=10, min_delta=0.001):
         self.patience = patience
@@ -200,6 +255,7 @@ def evaluate_np(model, dataloader, device, partial_percent=0, hidden_samples=0.5
                 y_pred = NP_outputs.mean[:, revealed_samples::]
                 # per image per pin MSE loss
                 mse_error = (y_true - y_pred)  # get the mean of predictions
+                print(batch_r2(y_pred, y_true), y_pred[0], y_true[0])
                 total_r2 += batch_r2(y_pred, y_true)
                 total_loss += torch.sum((mse_error) ** 2) / (y_pred.shape[0] * y_pred.shape[1])
                 
