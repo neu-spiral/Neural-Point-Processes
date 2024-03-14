@@ -255,7 +255,6 @@ def evaluate_np(model, dataloader, device, partial_percent=0, hidden_samples=0.5
                 y_pred = NP_outputs.mean[:, revealed_samples::]
                 # per image per pin MSE loss
                 mse_error = (y_true - y_pred)  # get the mean of predictions
-                print(batch_r2(y_pred, y_true), y_pred[0], y_true[0])
                 total_r2 += batch_r2(y_pred, y_true)
                 total_loss += torch.sum((mse_error) ** 2) / (y_pred.shape[0] * y_pred.shape[1])
                 
