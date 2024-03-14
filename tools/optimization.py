@@ -31,7 +31,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
     val_losses = []  # To track validation loss for plotting
     best_val_loss = float('inf')
     if manual_lr:
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-5)
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, min_lr=1e-5)
         current_lr = optimizer.param_groups[0]["lr"]
 
     for epoch in range(epochs):
