@@ -1,0 +1,156 @@
+Best Learning Rate for MSE: 0.0009999999999999998
+Best Learning Rate for NPP sigma=0.1: 0.0039810717055349725
+Best Learning Rate for NPP sigma=0.2: 0.0039810717055349725
+Best Learning Rate for NPP sigma=0.5: 0.01
+Best Learning Rate for NPP sigma=1: 0.0251188643150958
+Best Learning Rate for NPP sigma=2: 0.0015848931924611134
+Validation Loss: 1.6639
+Validation Loss: 0.7836
+Validation Loss: 0.8551
+Validation Loss: 0.8426
+Validation Loss: 0.7259
+Validation Loss: 0.6643
+Validation Loss: 1.4956
+Validation Loss: 0.7699
+Validation Loss: 0.8240
+Validation Loss: 1.0043
+Validation Loss: 1.0002
+Validation Loss: 0.7508
+Validation Loss: 0.8538
+Validation Loss: 0.7086
+Validation Loss: 0.8852
+Validation Loss: 1.3841
+Validation Loss: 0.7199
+Validation Loss: 0.8181
+Validation Loss: 0.7691
+Validation Loss: 0.9591
+Early stopping after 100 epochs.
+MSE Test loss:0.674
+R2 Test loss:-0.267
+Validation Loss: 1.2818
+Validation Loss: 1.0638
+Validation Loss: 1.1888
+Validation Loss: 1.0319
+Validation Loss: 0.9838
+Validation Loss: 1.2325
+Validation Loss: 0.9678
+Validation Loss: 0.8299
+Validation Loss: 1.1210
+Validation Loss: 1.1326
+Validation Loss: 0.8951
+Validation Loss: 1.3090
+Validation Loss: 0.9651
+Validation Loss: 0.9768
+Validation Loss: 0.8462
+Validation Loss: 0.9077
+Validation Loss: 1.6773
+Validation Loss: 0.9520
+Validation Loss: 1.0523
+Early stopping after 95 epochs.
+NPP sigma=0.1 Test loss:0.687, R2 loss:-0.180, GP Test loss:0.687, GP R2 loss:-0.180
+Validation Loss: 2.5687
+Validation Loss: 2.3172
+Validation Loss: 2.4320
+Validation Loss: 2.2515
+Validation Loss: 2.1476
+Validation Loss: 3.7445
+Validation Loss: 2.0383
+Validation Loss: 1.7320
+Validation Loss: 1.9344
+Validation Loss: 2.0711
+Validation Loss: 2.0547
+Validation Loss: 1.7539
+Validation Loss: 2.4265
+Validation Loss: 2.1039
+Validation Loss: 2.1312
+Validation Loss: 2.5797
+Validation Loss: 2.3828
+Validation Loss: 1.7047
+Validation Loss: 1.8359
+Validation Loss: 1.8906
+Validation Loss: 4.4117
+Validation Loss: 2.2625
+Validation Loss: 2.0547
+Validation Loss: 1.8851
+Validation Loss: 1.7703
+Validation Loss: 2.0875
+Validation Loss: 3.9961
+Validation Loss: 2.0000
+Validation Loss: 3.0883
+Early stopping after 145 epochs.
+NPP sigma=0.2 Test loss:1.347, R2 loss:-0.019, GP Test loss:1.347, GP R2 loss:-0.019
+Validation Loss: 1.7290
+Validation Loss: 2.0462
+Validation Loss: 2.1118
+Validation Loss: 1.7072
+Validation Loss: 1.8329
+Validation Loss: 1.9150
+Validation Loss: 1.9259
+Validation Loss: 2.4126
+Validation Loss: 1.7783
+Validation Loss: 2.0964
+Validation Loss: 1.8384
+Validation Loss: 2.6150
+Validation Loss: 1.9871
+Validation Loss: 2.7134
+Validation Loss: 2.1829
+Early stopping after 75 epochs.
+NPP sigma=0.5 Test loss:1.347, R2 loss:-0.019, GP Test loss:1.347, GP R2 loss:-0.019
+Validation Loss: 2.0204
+Validation Loss: 1.7337
+Validation Loss: 1.6916
+Validation Loss: 2.2867
+Validation Loss: 1.7097
+Validation Loss: 1.6421
+Validation Loss: 1.4700
+Validation Loss: 1.7318
+Validation Loss: 1.7646
+Validation Loss: 1.4765
+Validation Loss: 2.1434
+Validation Loss: 1.6838
+Validation Loss: 2.0286
+Validation Loss: 1.9580
+Validation Loss: 1.4816
+Validation Loss: 1.8662
+Validation Loss: 1.5719
+Validation Loss: 1.9211
+Early stopping after 90 epochs.
+NPP sigma=1 Test loss:1.172, R2 loss:-0.243, GP Test loss:1.172, GP R2 loss:-0.243
+Validation Loss: 1.4352
+Validation Loss: 1.3404
+Validation Loss: 0.8892
+Validation Loss: 1.0137
+Validation Loss: 0.9562
+Validation Loss: 1.1849
+Validation Loss: 0.8162
+Validation Loss: 0.8890
+Validation Loss: 0.7699
+Validation Loss: 1.1472
+Validation Loss: 0.8301
+Validation Loss: 1.0983
+Validation Loss: 0.9950
+Validation Loss: 0.7336
+Validation Loss: 0.9456
+Validation Loss: 0.9779
+Validation Loss: 0.7601
+Validation Loss: 0.7709
+Validation Loss: 0.6984
+Validation Loss: 0.7182
+Validation Loss: 1.0852
+Validation Loss: 0.8293
+Validation Loss: 0.9507
+Validation Loss: 1.0628
+Validation Loss: 0.9206
+Validation Loss: 0.7847
+Validation Loss: 0.7148
+Validation Loss: 0.9112
+Validation Loss: 0.8513
+Validation Loss: 0.8893
+Early stopping after 150 epochs.
+NPP sigma=2 Test loss:0.603, R2 loss:-0.150, GP Test loss:0.603, GP R2 loss:-0.150
+start saving!
+saved
+Percent testing 0.25
+Percent testing 0.5
+Percent testing 0.75
+Percent testing 1.0
