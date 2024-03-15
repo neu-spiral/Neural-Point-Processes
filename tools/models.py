@@ -19,6 +19,8 @@ class Autoencoder(nn.Module):
             if deeper: # Extra layer that won't change the size
                 layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
                 layers.append(nn.ReLU())
+                layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+                layers.append(nn.ReLU())
             layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
             self.input_channel = out_channels  # Update input_channel for the next layer
         
@@ -31,6 +33,8 @@ class Autoencoder(nn.Module):
             layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2))
             layers.append(nn.ReLU())
             if deeper: # Extra layer that won't change the size
+                layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+                layers.append(nn.ReLU())
                 layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
                 layers.append(nn.ReLU())
             input_channel = out_channels
