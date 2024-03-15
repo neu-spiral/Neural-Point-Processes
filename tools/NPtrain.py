@@ -85,11 +85,14 @@ def batch_r2(pred, target):
     # Calculate R2 score for each pair and store the results
     r2_scores = 0
     for i in range(len(pred)):
-        r2 = r2_score(pred[i], target[i])
+        if torch.std(target[i]) == 0:
+            r2 = 0  # If target[i] is constant, set r2 to 0
+        else:
+            r2 = r2_score(pred[i], target[i])
         r2_scores += r2
 
     # Calculate the average R2 score
-    avg_r2 = r2_scores/len(pred)
+    avg_r2 = r2_scores / len(pred)
     return avg_r2
 
 
