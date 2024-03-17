@@ -12,7 +12,7 @@ do
             do
                 for n_pins in 10
                 do
-                    for name in Mesh_1
+                    for name in Mesh_sigma
                     do
                         echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
                         sbatch /work/DNAL/shi.cheng/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $name
@@ -26,7 +26,7 @@ do
             do
                 for d in 10
                 do
-                    for name in Random_1
+                    for name in Random_sigma
                     do
                         echo "Executing training: dataset $dataset, feature $feature, mode random, npins $n_pins"
                         sbatch /work/DNAL/shi.cheng/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $name
