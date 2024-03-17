@@ -17,6 +17,7 @@ import argparse
 import time
 from tools.models import *
 from torch.utils.data import Subset
+import time
 
 
 class CustomLRFinder:
@@ -268,7 +269,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-
+    start_time = time.time()
     # Set a random seed for PyTorch
     seed = 4  # You can use any integer value as the seed
     torch.manual_seed(seed)
@@ -449,6 +450,7 @@ def main():
                     f"MSE: {best_MSE_test_loss}, R2: {best_R2_test_loss_MSE} "
                     f"| NPP: {best_NPP_test_loss}, R2: {best_R2_test_loss_NPP}; GP: {GP_best_NPP_test_loss}, R2: {best_R2_test_loss_GP}")
 
-
+    end_time = time.time()
+    print(f"Time Elapsed: {(end_time - start_time) / 3600} hours")
 if __name__ == "__main__":
     main()
