@@ -62,7 +62,7 @@ class NPPLoss(nn.Module):
         loss = 0
         if self.identity:
             for i in range(len(y_true)):
-                loss += 1/len(y_true[i]) * torch.matmul(
+                loss += 1/len(y_true[i]) * torch.matmul( 
                     (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]]).t(),
                     (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]])
                 )

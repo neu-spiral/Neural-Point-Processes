@@ -312,7 +312,10 @@ def main():
         else:
             input_channel = 1
     elif dataset == "Building":
-        input_channel = 4
+        if feature_extracted:
+            input_channel = 3584
+        else:
+            input_channel = 4
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

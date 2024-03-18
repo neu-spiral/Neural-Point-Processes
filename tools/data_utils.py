@@ -359,6 +359,16 @@ class Resize100(object):
         image = transforms.functional.resize(image, size)
         
         return {'image': image, 'pins': pins, 'outputs': outputs}
+    
+# Define a custom transform to resize the image
+class Resize256(object):
+    def __call__(self, sample, size=(256,256)):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+        
+        # Resize the image to desired sized pixels
+        image = transforms.functional.resize(image, size)
+        
+        return {'image': image, 'pins': pins, 'outputs': outputs}
 
     
 class ToTensor(object):

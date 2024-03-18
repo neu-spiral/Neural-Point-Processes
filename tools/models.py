@@ -19,6 +19,8 @@ class Autoencoder(nn.Module):
             if deeper: # Extra layer that won't change the size
                 layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
                 layers.append(nn.ReLU())
+                layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+                layers.append(nn.ReLU())
             layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
             self.input_channel = out_channels  # Update input_channel for the next layer
         
@@ -27,10 +29,15 @@ class Autoencoder(nn.Module):
     def _build_decoder(self, num_kernels, input_channel, deeper):
         layers = []
         
-        for out_channels in num_kernels:
-            layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2))
+        for i, out_channels in enumerate(num_kernels):
+            if i == 0 and len(num_kernels) > 1:
+                layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2, output_padding=1))
+            else: 
+                layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2))
             layers.append(nn.ReLU())
             if deeper: # Extra layer that won't change the size
+                layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+                layers.append(nn.ReLU())
                 layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
                 layers.append(nn.ReLU())
             input_channel = out_channels
@@ -44,7 +51,7 @@ class Autoencoder(nn.Module):
         inputHdim, inputWdim = x.size()[2], x.size()[3]
         x = self.encoder(x)
         x = self.decoder(x)
-        assert x.size()[1:] == (1, inputHdim, inputWdim), "Output dimensions do not match the expected size [1, inputHdim, inputWdim]"
+        assert x.size()[1:] == (1, inputHdim, inputWdim), f"Output dimensions do not match the expected size [1, inputHdim, inputWdim], got {x.size()[1:]}"
         return x
 
 
