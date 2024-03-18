@@ -221,7 +221,7 @@ class DDPM(BaseModel):
     # Get feature representations for a given image
     def get_feats(self, t):
         self.netG.eval()
-        batch = self.set_device(self.data["image"])[:,:3,:,:]
+        batch = self.set_device(self.data)[:,:3,:,:]
         with torch.no_grad():
             if isinstance(self.netG, nn.DataParallel):
                 fe, fd = self.netG.module.feats(batch, t)

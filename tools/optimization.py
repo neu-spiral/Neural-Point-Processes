@@ -112,7 +112,7 @@ def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma, noise=1e-5):
     x1 = x1.float()
     x2 = x2.float()
     # Kernel of the observations
-    Cov11 = kernel_func(x1, x1, sigma) + noise*torch.eye(len(x1))
+    Cov11 = kernel_func(x1, x1, sigma) + (noise*torch.eye(len(x1))).to(x1.device)
     # Kernel of observations vs to-predict
     Cov12 = kernel_func(x1, x2, sigma)
     Cov22 = kernel_func(x2, x2, sigma)
