@@ -101,7 +101,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
     return model, train_losses, val_losses, global_best_val_loss
 
 
-def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma):
+def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma, noise=1e-5):
     """
     Calculate the posterior mean and covariance matrix for y2
     based on the corresponding input x2, the observations (y1, x1), 
@@ -112,7 +112,7 @@ def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma):
     x1 = x1.float()
     x2 = x2.float()
     # Kernel of the observations
-    Cov11 = kernel_func(x1, x1, sigma)
+    Cov11 = kernel_func(x1, x1, sigma) + noise*torch.eye(len(x1))
     # Kernel of observations vs to-predict
     Cov12 = kernel_func(x1, x2, sigma)
     Cov22 = kernel_func(x2, x2, sigma)
