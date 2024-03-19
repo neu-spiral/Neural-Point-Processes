@@ -85,8 +85,11 @@ def batch_r2(pred, target):
     # Calculate R2 score for each pair and store the results
     r2_scores = 0
     for i in range(len(pred)):
-        if torch.std(target[i]) == 0:
-            r2 = 0  # If target[i] is constant, set r2 to 0
+        if torch.allclose(target[i], target[i][0], atol=1e-10):
+            if torch.allclose(pred[i], target[i][0], atol=1e-10):
+                r2 = 1
+            else:
+                r2 = 0
         else:
             r2 = r2_score(pred[i], target[i])
         r2_scores += r2
