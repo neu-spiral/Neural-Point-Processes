@@ -165,7 +165,7 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
 
                 y_test[i] = y_sample
                 p_test[i] = p_sample
-                if torch.allclose(y_test[i], torch.zeros_like(y_test[i]), atol=1e-10):
+                if torch.allclose(y_test[i], y_test[i][0], atol=1e-10):
                     # If target is constant r2 should return 0.0 if pred is different or 1.0 if pred == target
                     if torch.all(torch.eq((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i])):
                         r2 += 1.0
