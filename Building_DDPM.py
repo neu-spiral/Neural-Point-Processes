@@ -49,6 +49,7 @@ def save_fm_by_batch(opt, data_loader, images_directory, output_directory, outpu
         # Write the header row
         csv_writer.writerow(['image', 'pins', 'outputs'])
         # Use tqdm to wrap the data_loader for progress visualization
+        count = 0
         with torch.no_grad():
             for batch_idx, batch in enumerate(tqdm(data_loader, desc="Processing batches")):
                 torch.cuda.memory_allocated()
@@ -72,13 +73,16 @@ def save_fm_by_batch(opt, data_loader, images_directory, output_directory, outpu
                     overall_index = batch_idx * len(images) + i
 
                     # Save the image as "overall_index.png" or "overall_index.npy" in the images subdirectory
-                    image_filename = os.path.join(images_directory, f"{overall_index}")
+                    image_filename = os.path.join(images_directory, f"{count}")
                     # For multi-channel images, save as NPY
                     image_filename += ".npy"
                     if output_featuremap and not os.path.exists(image_filename):
                         np.save(image_filename, concat_fm[i].detach().cpu().numpy())
                     # Write data to CSV
-                    csv_writer.writerow([os.path.basename(image_filename), pins[i], outputs[i]])
+                    tuple_pin = [tuple(point.detach().cpu().numpy()) for point in pins[i]]
+                    list_outputs = [int(output.item()) for output in outputs[i]]
+                    csv_writer.writerow([os.path.basename(image_filename), tuple_pin, list_outputs])
+                    count += 1
                 if output_featuremap:
                     del f_A
     print("Data and images have been saved to the CSV and image files.")
@@ -189,10 +193,10 @@ dataset = "Building"
 store_path = f"./history/ddpm_model_{dataset}.pt"
 batch_size = 16
 input_channel = 3
-n = 200
+n = 32
 resize = Resize256
 
-data_folder = f"random_n_pins_{n}"
+data_folder = f"mesh_{n}_step"
 transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_folder}/pins.csv",
                                  root_dir=f"./data/{dataset}/images/",
                                  transform=Compose([ToTensor(), resize(), Lambda()]))
@@ -200,4 +204,4 @@ transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_fol
 data_loader = DataLoader(transformed_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
 
-save_fm_by_batch(opt, data_loader, images_directory="./data/Building_ddpm/", output_directory=f"./data/Building_ddpm/{data_folder}", output_featuremap=False)
+save_fm_by_batch(opt, data_loader, images_directory="./data/Building_ddpm/", output_directory=f"./data/Building_ddpm/{data_folder}")

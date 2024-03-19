@@ -349,7 +349,6 @@ def main():
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize100(),  # Resize to 100x100
-        Lambda()
     ])
     else:
         transform = transforms.Compose([
