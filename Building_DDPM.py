@@ -26,7 +26,7 @@ def concat_feature_maps(feature_maps, layers=[5, 6, 7, 8]):
 
 
 
-def save_fm_by_batch(opt, data_loader, images_directory, output_directory):
+def save_fm_by_batch(opt, data_loader, images_directory, output_directory, output_featuremap = True):
 
     opt = sr3.dict_to_nonedict(opt)
     # Loading diffusion model
@@ -56,16 +56,16 @@ def save_fm_by_batch(opt, data_loader, images_directory, output_directory):
                 images = batch['image'].to(device)  # get RGB instead of RGBA
                 pins = batch['pins']
                 outputs = batch['outputs']
+                if output_featuremap:
+                    diffusion.feed_data(images)
 
-                diffusion.feed_data(images)
-
-                # Disable gradient calculation
-                diffusion.feed_data(images)
-                f_A = []
-                for t in opt['model_cd']['t']:
-                    fe_A_t, fd_A_t = diffusion.get_feats(t=t)  # np.random.randint(low=2, high=8)
-                    f_A.append(fd_A_t)
-                concat_fm = concat_feature_maps(f_A)
+                    # Disable gradient calculation
+                    diffusion.feed_data(images)
+                    f_A = []
+                    for t in opt['model_cd']['t']:
+                        fe_A_t, fd_A_t = diffusion.get_feats(t=t)  # np.random.randint(low=2, high=8)
+                        f_A.append(fd_A_t)
+                    concat_fm = concat_feature_maps(f_A)
 
                 for i in range(len(images)):
                     # Calculate the overall index
@@ -75,12 +75,12 @@ def save_fm_by_batch(opt, data_loader, images_directory, output_directory):
                     image_filename = os.path.join(images_directory, f"{overall_index}")
                     # For multi-channel images, save as NPY
                     image_filename += ".npy"
-                    if not os.path.exists(image_filename):
+                    if output_featuremap and not os.path.exists(image_filename):
                         np.save(image_filename, concat_fm[i].detach().cpu().numpy())
-
                     # Write data to CSV
                     csv_writer.writerow([os.path.basename(image_filename), pins[i], outputs[i]])
-                del f_A
+                if output_featuremap:
+                    del f_A
     print("Data and images have been saved to the CSV and image files.")
 
 
@@ -187,16 +187,17 @@ opt = {
 # Hyperparameters
 dataset = "Building"
 store_path = f"./history/ddpm_model_{dataset}.pt"
-batch_size = 8
+batch_size = 16
 input_channel = 3
-n = 10
+n = 32
 resize = Resize256
 
-data_folder = f"random_n_pins_{n}"
+data_folder = f"mesh_{n}_step"
 transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_folder}/pins.csv",
                                  root_dir=f"./data/{dataset}/images/",
                                  transform=Compose([ToTensor(), resize(), Lambda()]))
 
 data_loader = DataLoader(transformed_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
-save_fm_by_batch(opt, data_loader, images_directory="/raid/home/shi.cheng/data/Building_ddpm/", output_directory=f"/raid/home/shi.cheng/data/Building_ddpm/{data_folder}")
+
+save_fm_by_batch(opt, data_loader, images_directory="/raid/home/shi.cheng/data/Building_ddpm/", output_directory=f"/raid/home/shi.cheng/data/Building_ddpm/{data_folder}", output_featuremap=False)
