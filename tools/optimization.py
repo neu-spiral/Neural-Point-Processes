@@ -112,7 +112,7 @@ def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma, noise=1e-5):
     x1 = x1.float()
     x2 = x2.float()
     # Kernel of the observations
-    Cov11 = kernel_func(x1, x1, sigma) + noise*torch.eye(len(x1))
+    Cov11 = kernel_func(x1, x1, sigma) + (noise*torch.eye(len(x1))).to(x1.device)
     # Kernel of observations vs to-predict
     Cov12 = kernel_func(x1, x2, sigma)
     Cov22 = kernel_func(x2, x2, sigma)
@@ -165,7 +165,7 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
 
                 y_test[i] = y_sample
                 p_test[i] = p_sample
-                if torch.allclose(y_test[i], torch.zeros_like(y_test[i]), atol=1e-10):
+                if torch.allclose(y_test[i], y_test[i][0], atol=1e-10):
                     # If target is constant r2 should return 0.0 if pred is different or 1.0 if pred == target
                     if torch.all(torch.eq((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i])):
                         r2 += 1.0

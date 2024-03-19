@@ -249,7 +249,7 @@ def parse_args():
     parser.add_argument("--manual_lr", action='store_true', default=False, help="Do not use Custom LR Finder")
 
     # List of sigma values
-    parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2, 5],
+    parser.add_argument("--sigmas", nargs="+", type=float, default=[0.1, 0.2, 0.5, 1, 2, 5, 10, 20],
                         help="List of sigma values to test")
 
     # Model configuration
@@ -313,7 +313,10 @@ def main():
         else:
             input_channel = 1
     elif dataset == "Building":
-        input_channel = 4
+        if feature_extracted:
+            input_channel = 3584
+        else:
+            input_channel = 4
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -346,7 +349,6 @@ def main():
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize100(),  # Resize to 100x100
-        Lambda()
     ])
     else:
         transform = transforms.Compose([
