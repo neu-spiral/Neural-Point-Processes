@@ -189,10 +189,10 @@ dataset = "Building"
 store_path = f"./history/ddpm_model_{dataset}.pt"
 batch_size = 16
 input_channel = 3
-n = 32
+n = 200
 resize = Resize256
 
-data_folder = f"mesh_{n}_step"
+data_folder = f"random_n_pins_{n}"
 transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_folder}/pins.csv",
                                  root_dir=f"./data/{dataset}/images/",
                                  transform=Compose([ToTensor(), resize(), Lambda()]))
@@ -200,4 +200,4 @@ transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_fol
 data_loader = DataLoader(transformed_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
 
-save_fm_by_batch(opt, data_loader, images_directory="/raid/home/shi.cheng/data/Building_ddpm/", output_directory=f"/raid/home/shi.cheng/data/Building_ddpm/{data_folder}", output_featuremap=False)
+save_fm_by_batch(opt, data_loader, images_directory="./data/Building_ddpm/", output_directory=f"./data/Building_ddpm/{data_folder}", output_featuremap=False)
