@@ -277,14 +277,14 @@ def main():
     ])
 
     if dataset == "Building" and feature_extracted:
-        root_dir = "/raid/home/shi.cheng/data/Building_ddpm/images/"
+        root_dir = "/work/DNAL/Datasets/Building_ddpm/images/"
         if mesh:
-            data_folder = f"/raid/home/shi.cheng/data/Building_ddpm/mesh_{d}_step"
+            data_folder = f"/work/DNAL/Datasets/Building_ddpm/processed/mesh_{d}_step"
             config['n_pins'] = (100 // d + 1) ** 2
         else:
-            data_folder = f"/raid/home/shi.cheng/data/Building_ddpm/random_n_pins_{n_pins}"
+            data_folder = f"/work/DNAL/Datasets/Building_ddpm/processed/random_n_pins_{n_pins}"
     else:
-        root_dir = f"./data/{folder}/images/"
+        root_dir = f"/work/DNAL/Datasets/Building_ddpm/images/"
         
     transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
                                      root_dir=root_dir,
