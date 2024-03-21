@@ -69,9 +69,6 @@ def save_fm_by_batch(opt, data_loader, images_directory, output_directory, outpu
                     concat_fm = concat_feature_maps(f_A)
 
                 for i in range(len(images)):
-                    # Calculate the overall index
-                    overall_index = batch_idx * len(images) + i
-
                     # Save the image as "overall_index.png" or "overall_index.npy" in the images subdirectory
                     image_filename = os.path.join(images_directory, f"{count}")
                     # For multi-channel images, save as NPY
@@ -204,4 +201,4 @@ transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_fol
 data_loader = DataLoader(transformed_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
 
-save_fm_by_batch(opt, data_loader, images_directory="./data/Building_ddpm/", output_directory=f"./data/Building_ddpm/{data_folder}")
+save_fm_by_batch(opt, data_loader, images_directory="/raid/home/shi.cheng/data/Building_ddpm/", output_directory=f"/raid/home/shi.cheng/data/Building_ddpm/{data_folder}")

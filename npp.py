@@ -118,8 +118,6 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         R2_losses_vs_sigma_npp_true = []
         GP_test_losses_vs_sigma_npp_true = []
         GP_R2_losses_vs_sigma_npp_true = []
-        test_loss_npp_false = None
-        r2_loss_npp_false = None
 
         # Run NPP=False once and collect the test loss
         early_stopping = EarlyStoppingCallback(patience=15, min_delta=0.001)
@@ -241,7 +239,7 @@ def parse_args():
 
     # Hyperparameters
     parser.add_argument("--epochs", type=int, default=200, help="Number of epochs")
-    parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
+    parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
     parser.add_argument("--learning_rate", type=float, default=0.1, help="Learning rate")
     parser.add_argument("--val_every_epoch", type=int, default=5, help="Number of epochs in between validations")
     parser.add_argument("--num_runs", type=int, default=3,
@@ -355,9 +353,19 @@ def main():
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize()  # Resize to 100x100
     ])
+
+    if dataset == "Building" and feature_extracted:
+        root_dir = "/raid/home/shi.cheng/data/Building_ddpm/images/"
+        if mesh:
+            data_folder = f"/raid/home/shi.cheng/data/Building_ddpm/mesh_{d}_step"
+            config['n_pins'] = (100 // d + 1) ** 2
+        else:
+            data_folder = f"/raid/home/shi.cheng/data/Building_ddpm/random_n_pins_{n_pins}"
+    else:
+        root_dir = f"./data/{folder}/images/"
         
     transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
-                                     root_dir=f"./data/{folder}/images/",
+                                     root_dir=root_dir,
                                      transform=transform)
 
     dataset_size = len(transformed_dataset)
@@ -392,7 +400,8 @@ def main():
         # Find best learning rate
         model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
         # Training  
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        # optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
         criterion_MSE = NPPLoss(identity=True).to(device)
         lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
         lr_finder_MSE.find_lr(train_loader, input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)
