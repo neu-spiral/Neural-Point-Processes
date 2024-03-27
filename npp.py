@@ -338,10 +338,10 @@ def main():
             data_folder = f"./data/{folder}/random_{n_pins}pins"
     elif dataset == "Building":
         if mesh:
-            data_folder = f"./data/{folder}/processed/mesh_{d}_step"
+            data_folder = f"./data/{folder}/mesh_{d}_step"
             config['n_pins'] = (100 // d + 1) ** 2
         else:
-            data_folder = f"./data/{folder}/processed/random_n_pins_{n_pins}"
+            data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
     
     if dataset == "Building":
         transform = transforms.Compose([
@@ -353,16 +353,8 @@ def main():
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize()  # Resize to 100x100
     ])
-
-    if dataset == "Building" and feature_extracted:
-        root_dir = "/raid/home/shi.cheng/data/Building_ddpm/images/"
-        if mesh:
-            data_folder = f"/raid/home/shi.cheng/data/Building_ddpm/mesh_{d}_step"
-            config['n_pins'] = (100 // d + 1) ** 2
-        else:
-            data_folder = f"/raid/home/shi.cheng/data/Building_ddpm/random_n_pins_{n_pins}"
-    else:
-        root_dir = f"./data/{folder}/images/"
+            
+    root_dir = f"./data/{folder}/images/"
         
     transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
                                      root_dir=root_dir,
