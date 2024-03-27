@@ -1,0 +1,17 @@
+Validation Loss: 1.8674
+Validation Loss: 1.7464
+MSE Test loss:1.579
+R2 Test loss:-0.190
+Validation Loss: 1.9206
+Validation Loss: 1.7962
+NPP sigma=0.5 Test loss:1.579, R2 loss:-0.190, GP Test loss:1.579, GP R2 loss:-0.190
+Validation Loss: 1.4697
+Validation Loss: 1.2434
+NPP sigma=2 Test loss:1.108, R2 loss:-1.862, GP Test loss:1.108, GP R2 loss:-1.862
+start saving!
+saved
+Percent testing 0.25
+Percent testing 0.5
+Percent testing 0.75
+Percent testing 1.0
+Time Elapsed: 2.7895451025830376 hours
