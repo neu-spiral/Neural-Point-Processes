@@ -26,12 +26,13 @@ scipy==1.10.1
 setuptools==68.2.2
 six==1.16.0
 tifffile==2023.7.10
-torch==1.12.1+cu113
-torchaudio==0.12.1+cu113
+torch==1.12.1
+torchaudio==0.12.1
 torcheval==0.0.7
-torchvision==0.13.1+cu113
+torchvision==0.13.1
 typing_extensions==4.10.0
 tzdata==2024.1
 urllib3==2.2.1
 wheel==0.41.2
 zipp==3.18.0
+jupyterlab==4.1.0

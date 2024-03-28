@@ -8,15 +8,83 @@ Pixel-wise regression tasks in sparsely annotated images present unique challeng
 
 ## Installation
 
-1. Clone this repository:
-```bash
-git clone https://github.com/neu-spiral/Satellite_Fusion.git
-```
+This project can be installed and run in various environments, depending on your preferences and system setup. Below are instructions for setting up the project using Docker and Conda.
 
-2. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
+### Option 1: Using Docker
+
+Docker is a platform for developing, shipping, and running applications in lightweight containers. This method ensures a consistent environment that's reproducible across different systems. If you do not have Docker already, follow the next optional step:
+
+**Install Docker:** If you haven't already, [install Docker](https://docs.docker.com/get-docker/) on your system.
+
+After installing Docker. Follow these steps to reproduce our results and experiments:
+
+1. **Clone this repository**:
+   ```bash
+   git clone https://github.com/neu-spiral/Satellite_Fusion.git
+   ```
+
+2. **Navigate to the project directory**:
+   ```bash
+   cd Satellite_Fusion
+   ```
+
+3. **Build the Docker image**:
+   Build a Docker image named `npp` (you can choose any name you like) with the Dockerfile provided in the repository.
+   ```bash
+   docker build -t npp .
+   ```
+
+4. **Run the Docker container**:
+   Start a container from the image. This command maps port 8888 from the container to the host, allowing you to access Jupyter Notebooks.
+   ```bash
+   docker run -it --rm -p 8888:8888 npp
+   ```
+
+   Inside the container, run any training script as described below or you can also start JupyterLab by running:
+   ```bash
+   jupyter lab --ip 0.0.0.0 --no-browser --allow-root
+   ```
+   Copy the URL shown in the terminal to your browser to access the Jupyter Notebook interface.
+
+### Option 2: Using Conda
+
+Conda is an open-source package management system and environment management system that runs on Windows, macOS, and Linux. Conda quickly installs, runs, and updates packages and their dependencies. If you are new to conda we recommend the following optional step:
+
+**Install Conda**: Users can choose between Anaconda and Miniconda. Anaconda includes Conda, Python, and a large collection of pre-installed packages geared towards scientific computing. Miniconda includes only Conda and Python, allowing users to install only the packages they need.
+
+   - To install **Anaconda**, users can download the installer from the [Anaconda website](https://www.anaconda.com/products/individual) and follow the installation instructions.
+   - To install **Miniconda**, users can download the installer from the [Miniconda website](https://docs.conda.io/en/latest/miniconda.html) and follow the installation instructions.
+
+Users with a conda installation can proceed with the next steps:
+
+1. **Clone this repository**:
+   ```bash
+   git clone https://github.com/neu-spiral/Satellite_Fusion.git
+   ```
+
+2. **Create a Conda environment**:
+   Navigate to the project directory and create a Conda environment.
+   ```bash
+   cd Satellite_Fusion
+   conda create --name npp python=3.8.13
+   ```
+
+3. **Activate the Conda environment**:
+   ```bash
+   conda activate npp
+   ```
+
+4. **Install the required dependencies**:
+   Install all the dependencies listed in the `requirements.txt` file.
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Running the project**:
+   After installation, you can run your scripts or start JupyterLab:
+   ```bash
+   jupyter lab
+   ```
 
 ## Usage
 
