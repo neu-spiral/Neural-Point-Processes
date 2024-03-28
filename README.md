@@ -20,33 +20,70 @@ pip install -r requirements.txt
 
 ## Usage
 
-The main code can be executed with the following command:
+To train our models (NNP and NPP-GP) and the Plain model you need to use the `npp.py` script. After finishing the training of the models, the models are evaluated automatically for the following values of percentage of labels to be shown partially during testing: `0.25, 0.5, 0.75, 1.00`. The code can be executed with the following command:
+
 ```bash
-python main.py --dataset <dataset> --feature <feature> --mode <mode> --n <n> --d <d> --n_pins <n_pins> --partial_percent <partial_percent> --r <r> --epochs <epochs> --batch_size <batch_size> --learning_rate <learning_rate> --val_every_epoch <val_every_epoch> --num_runs <num_runs> --sigmas <sigmas> --num_encoder <num_encoder> --num_decoder <num_decoder> --deeper --experiment_name <experiment_name>
+python npp.py --dataset <dataset> --feature <feature> --mode <mode> --n <n> --d <d> --n_pins <n_pins> --partial_percent <partial_percent> --r <r> --epochs <epochs> --batch_size <batch_size> --learning_rate <learning_rate> --val_every_epoch <val_every_epoch> --num_runs <num_runs> --sigmas <sigmas> --num_encoder <num_encoder> --num_decoder <num_decoder> --deeper --experiment_name <experiment_name>
 ```
 
-You can customize the execution by modifying the command-line arguments as per your requirements. Refer to the provided `main.py` script for a detailed description of all available options.
+You can customize the execution by modifying the command-line arguments as per your requirements. Below is a description of each available option:
+
+- `--dataset`: Specifies the name of the dataset to be used. Options are "Synthetic", "PinMNIST" and "Bulding". Default is "PinMNIST".
+
+- `--feature`: Indicates the type of feature extraction to use, options are "DDPM" or "AE". Default is "AE".
+
+- `--mode`: Determines the mode for selecting points within images, can be either "mesh" for a mesh grid or "random" for random selection. Default is "mesh".
+
+- `--n`: Number of samples in the dataset. Default is 100.
+
+- `--d`: Used to define the spacing between points in a mesh grid. You do not need to define it if using "random". Default is 10.
+
+- `--n_pins`: Specifies the number of points (pins) selected from each image in the random setting. You do not need to define it if using "mesh". Default is 500.
+
+- `--partial_percent`: Sets the percentage of labels to be shown partially during the process of training evaluation, ranges from 0 to 1. Default is 0.00. We recommend leaving the default value since other partial percentages are automatically tested afterwards.
+
+- `--r`: Defines a radius or another parameter relevant to the dataset or feature extraction method. Default is 3.
+
+- `--epochs`: The number of epochs for training the model. Default is 200.
+
+- `--batch_size`: Size of the batch used during training. Default is 64.
+
+- `--learning_rate`: Initial learning rate for the optimization algorithm. Default is 0.1.
+
+- `--val_every_epoch`: Frequency of validation, specified as the number of epochs between validations. Default is 5.
+
+- `--num_runs`: The number of times to train the model with different initializations or datasets. Default is 3.
+
+- `--manual_lr`: A flag that, when used, disables the custom learning rate finder, falling back to the specified `--learning_rate`.
+
+- `--sigmas`: A list of sigma values to test, used for Gaussian kernel or other components that utilize a bandwidth parameter. Default is `[0.1, 0.2, 0.5, 1, 2, 5, 10, 20]`.
+
+- `--num_encoder`: List of kernel sizes for the encoder part of a model. Default is `[64, 32]`.
+
+- `--num_decoder`: List of kernel sizes for the decoder part of a model. Default is `[64]`.
+
+- `--deeper`: A flag to add extra convolutional layers to the model, enhancing its complexity.
+
+- `--experiment_name`: Specifies a custom folder name under which to save the generated experiments, allowing for organized storage and retrieval of experimental results.
+
+These options allow for extensive customization and tuning of the model's training and evaluation process, facilitating experiments across various datasets and configurations.
+
+In order to obtain the NP results you need ... TO DO:
+---
 
 ## Examples
 
 Before executing the example commands, ensure you have followed the installation instructions and have the necessary datasets.
 
-### Training the Model
+### Training and Evaluating the Model
 
 ```bash
-python main.py --dataset PinMNIST --epochs 200 --batch_size 64 --learning_rate 0.01 --val_every_epoch 5 --num_runs 3 --sigmas 0.1 0.5 1.0 --num_encoder 32 16 --num_decoder 32 --experiment_name my_experiment
-```
-
-### Evaluating the Model
-
-To evaluate the model, use the generated `experiment_id` from the training phase:
-```bash
-python main.py --experiment_id <your_experiment_id> --mode test
+python npp.py --dataset PinMNIST --epochs 200 --batch_size 64 --learning_rate 0.01 --val_every_epoch 5 --num_runs 3 --sigmas 0.1 0.5 1.0 --num_encoder 32 16 --num_decoder 32 --experiment_name my_experiment
 ```
 
 ## Data Description
 
-This project utilizes three main datasets: Synthetic Elevation Heatmaps, PMNIST, and Rotterdam. Below are brief descriptions and access links to processed datasets:
+This project utilizes three datasets: Synthetic Elevation Heatmaps, PMNIST, and Rotterdam. Below are brief descriptions and access links to processed datasets:
 
 - **Synthetic Elevation Heatmaps:** Generated representations of random elevations as heatmaps. The generated datased has 1000 samples. Each heatmap is a 28x28 matrix representing "elevation" values derived from a combination of sine and cosine functions. [Access Dataset](#)
 
@@ -54,9 +91,9 @@ This project utilizes three main datasets: Synthetic Elevation Heatmaps, PMNIST,
 
 - **Rotterdam:** 1000 selected satellite images from the SpaceNet6 dataset over Rotterdam, Netherlands. Labels are generated by counting unique buildings within a specified radius around selected points. Images are 100x100. [Access Dataset](#)
 
-Please ensure you have access rights to the datasets or contact the authors for more information.
+Please ensure you have access rights to the datasets or contact the authors for more information. We provide the scripts and notebooks used to generate the labels and final datasets too, you can find them in TO DO:
 
-%## Citation
+<!-- >## Citation
 
 If you find this work useful, please cite our paper:
 ```
@@ -66,11 +103,11 @@ If you find this work useful, please cite our paper:
   journal={Journal Name},
   year={2023}
 }
-```%
+```
 
-%## License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.%
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. -->
 
 ## Acknowledgments
 

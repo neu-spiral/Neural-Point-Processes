@@ -251,13 +251,9 @@ def parse_args():
                         help="List of sigma values to test")
 
     # Model configuration
-    parser.add_argument("--num_encoder", nargs="+", type=int, default=[32, 16], help="List of encoder kernel sizes")
-    parser.add_argument("--num_decoder", nargs="+", type=int, default=[32], help="List of decoder kernel sizes")
+    parser.add_argument("--num_encoder", nargs="+", type=int, default=[64, 32], help="List of encoder kernel sizes")
+    parser.add_argument("--num_decoder", nargs="+", type=int, default=[64], help="List of decoder kernel sizes")
     parser.add_argument("--deeper", action='store_true', default=False, help="Add extra convolutional layer for the model")
-
-    # Evaluation mode
-    parser.add_argument("--experiment_id", type=int, default=0,
-                        help="Provide an experiment id to test the produced models")
     
     # Experiment title
     parser.add_argument("--experiment_name", type=str, default=None, help="Define if you want to save the generated experiments in an specific folder")
