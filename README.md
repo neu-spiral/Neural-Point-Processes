@@ -81,6 +81,8 @@ Before executing the example commands, ensure you have followed the installation
 python npp.py --dataset PinMNIST --epochs 200 --batch_size 64 --learning_rate 0.01 --val_every_epoch 5 --num_runs 3 --sigmas 0.1 0.5 1.0 --num_encoder 32 16 --num_decoder 32 --experiment_name my_experiment
 ```
 
+Once the script is run, you can visualize the results using the notebook: `results_summary.ipynb`.
+
 ## Data Description
 
 This project utilizes three datasets: Synthetic Elevation Heatmaps, PMNIST, and Rotterdam. Below are brief descriptions and access links to processed datasets:
