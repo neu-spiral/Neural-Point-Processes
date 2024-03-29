@@ -100,6 +100,8 @@ You can customize the execution by modifying the command-line arguments as per y
 
 - `--dataset`: Specifies the name of the dataset to be used. Options are "Synthetic", "PinMNIST" and "Bulding". Default is "PinMNIST".
 
+- `--modality`: Building dataset modality. Default is "PS-RGBNIR". Notice this option won't be used if dataset is "Synthetic" or "PinMNIST". 
+
 - `--feature`: Indicates the type of feature extraction to use, options are "DDPM" or "AE". Default is "AE".
 
 - `--mode`: Determines the mode for selecting points within images, can be either "mesh" for a mesh grid or "random" for random selection. Default is "mesh".
