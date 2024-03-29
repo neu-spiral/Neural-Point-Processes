@@ -228,6 +228,7 @@ def parse_args():
 
     # Datasets and hyperparameters
     parser.add_argument("--dataset", type=str, default="PinMNIST", help="Dataset name")
+    parser.add_argument("--modality", type=str, default="PS-RGBNIR", help="Building dataset modality")
     parser.add_argument("--feature", type=str, default="AE", help="feature from 'DDPM' or 'DDPM'")
     parser.add_argument("--mode", type=str, default="mesh", help="mode for 'mesh' or 'random'")
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
@@ -283,6 +284,7 @@ def main():
 
     # Set your hyperparameters
     epochs = args.epochs
+    modality = args.modality
     batch_size = args.batch_size
     sigmas = args.sigmas  # Set the sigma values you want to test
     num_kernels_encoder = args.num_encoder
@@ -310,7 +312,12 @@ def main():
         if feature_extracted:
             input_channel = 3584
         else:
-            input_channel = 4
+            if modality == "PS-RGBNIR":
+                input_channel = 4
+            elif modality == "PS-RGB":
+                input_channel = 3
+            elif modality == "PS-RGBNIR-SAR":
+                input_channel = 8
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -348,13 +355,19 @@ def main():
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize()  # Resize to 100x100
-    ])
-            
-    root_dir = f"./data/{folder}/images/"
-        
-    transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
-                                     root_dir=root_dir,
+    ])        
+    
+    if dataset == "Building":
+        root_dir = "/work/USACE_KRI/Project_1/spacenet/aoi_11_rotterdam/train/train/AOI_11_Rotterdam/"+modality+"/"
+        transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
+                                     root_dir=root_dir, modality=modality,
                                      transform=transform)
+    else:
+        root_dir=f"./data/{folder}/images/"
+        transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
+                                     root_dir=root_dir, transform=transform)
+
+    
 
     dataset_size = len(transformed_dataset)
     train_size = int(0.7 * dataset_size)

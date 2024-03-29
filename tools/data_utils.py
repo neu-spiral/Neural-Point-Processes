@@ -306,7 +306,7 @@ def save_data_by_mode(images, pins, labels, images_directory, output_directory, 
 class PinDataset(Dataset):
     """Synthetic Heatmaps dataset."""
 
-    def __init__(self, csv_file, root_dir, transform=None):
+    def __init__(self, csv_file, root_dir, modality=None, transform=None):
         """
         Arguments:
             csv_file (string): Path to the csv file with annotations.
@@ -314,6 +314,7 @@ class PinDataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
+        self.modality = modality
         self.pins_frame = pd.read_csv(csv_file)
         self.root_dir = root_dir
         self.transform = transform
@@ -324,9 +325,10 @@ class PinDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-
-        img_name = os.path.join(self.root_dir,
-                                self.pins_frame.iloc[idx, 0])
+        file_name = self.pins_frame.iloc[idx, 0]
+        if self.modality is not None:
+            file_name = file_name.replace("PS-RGBNIR", self.modality)
+        img_name = os.path.join(self.root_dir, file_name)
                 # Check the file extension
         if img_name.endswith('.npy'):
             image = np.load(img_name)
@@ -382,7 +384,7 @@ class ToTensor(object):
         # torch image: C x H x W
         if len(image.shape) == 2:
             image = image.reshape(image.shape[0], image.shape[1], 1)
-        if len(image.shape)==3 and image.shape[2] <= 4:
+        if len(image.shape)==3 and image.shape[2] <= 20: #check if it is DDPM
             image = image.transpose((2, 0, 1))
         image = image/255 
         return {'image': torch.from_numpy(image),
