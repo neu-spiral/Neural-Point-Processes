@@ -1,0 +1,29 @@
+training start for sigma:0.0
+Validation Loss: 1.5982
+Validation Loss: 1.4127
+Validation Loss: 0.9947
+Validation Loss: 0.9127
+Validation Loss: 0.9295
+Validation Loss: 1.0014
+Validation Loss: 1.0796
+Validation Loss: 0.8530
+Validation Loss: 1.1168
+Validation Loss: 1.0970
+Validation Loss: 1.1513
+Validation Loss: 1.0960
+Validation Loss: 1.3171
+Validation Loss: 1.0467
+Validation Loss: 1.4033
+Validation Loss: 1.0506
+Validation Loss: 1.0344
+Validation Loss: 1.1548
+Validation Loss: 1.0808
+Validation Loss: 1.1563
+Validation Loss: 1.0826
+Validation Loss: 1.2557
+Early stopping after 110 epochs.
+MSE Test loss:1.264
+R2 Test loss:-0.344
+metrics saved
+start saving losses!
+Time Elapsed: 1.7136136048369937 hours
