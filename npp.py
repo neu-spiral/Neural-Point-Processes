@@ -403,15 +403,11 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
     if not manual_lr:
-        # Cases 2-6: identity=False, varying sigmas
+        model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+        optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
         best_lrs = []
         for sigma in sigmas:
             if sigma == 0:
-                # Find best learning rate
-                model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
-                # Training  
-                # optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-                optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
                 criterion_MSE = NPPLoss(identity=True).to(device)
                 lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
                 lr_finder_MSE.find_lr(train_loader, input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)

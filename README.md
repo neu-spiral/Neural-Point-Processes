@@ -140,8 +140,8 @@ You can customize the execution by modifying the command-line arguments as per y
 
 These options allow for extensive customization and tuning of the model's training and evaluation process, facilitating experiments across various datasets and configurations.
 
-In order to obtain the NP results you need ... TO DO:
----
+In order to obtain the NP results:
+Run `method_neural_processes.ipynb` to achieve summarized tables, which will be stored in `./results/neural_processes`.
 
 ## Examples
 
