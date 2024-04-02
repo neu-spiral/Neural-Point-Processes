@@ -183,7 +183,7 @@ If you find this work useful, please cite our paper:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
 
-## Acknowledgments
+## Software Acknowledgment
 
-- We thank the reviewers for their valuable feedback.
-- This work was supported by [Funding Agency/Institution].
+This software was created under the United States Army Core of Engineers (USACE) Engineer Research and Development Center (ERDC) Geospatial Research Laboratory (GRL) Cooperative Agreement Federal Award Identification Number (FAIN) W9132V-22-2-1,USACE ERDC GRL, as the Federal awarding agency, reserves a royalty-free, nonexclusive and irrevocable right to reproduce, publish, or otherwise use this software for Federal purposes, and to authorize others to do so in
+accordance with 2 CFR 200.315(b)
