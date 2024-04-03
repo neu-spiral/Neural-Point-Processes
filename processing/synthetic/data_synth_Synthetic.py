@@ -94,7 +94,7 @@ def extract_with_ddpm(data, n_steps, store_path):
 
 
 if __name__ == "__main__":
-    n = 10
+    n = 10000
     d1 = 28
     d2 = 28
     seed = 123456
