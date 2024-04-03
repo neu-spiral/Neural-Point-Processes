@@ -92,10 +92,10 @@ After cloning the repository and initializing the environment, please refer to o
 
 ## Data Description and Generation
 
-To generate the synthetic datasets required for the project, you will first need to navigate to the `processed/synth` directory within the repository. By default, we are generating a 1000 samples for each of the synthetic datasets. Each dataset has a dedicated script for its generation. 
+To generate the synthetic datasets required for the project, you will first need to navigate to the `processing/synthetic` directory within the repository. By default, we are generating a 1000 samples for each of the synthetic datasets. Each dataset has a dedicated script for its generation. 
 
 ```bash
-cd processing/synth
+cd processing/synthetic
 ```
 
 Follow the instructions below to generate each dataset:
@@ -107,7 +107,7 @@ This dataset simulates terrain elevations and is generated through a script that
 To generate the Synthetic Elevation Heatmaps, run the following command:
 
 ```bash
-cd processed/synth
+cd processing/synthetic
 python data_synth_Synthetic.py
 ```
 
@@ -123,7 +123,7 @@ python data_synth_PinMNIST.py
 
 ### Rotterdam
 
-The Rotterdam dataset consists of satellite images from the SpaceNet6 dataset, processed to count unique buildings within a specified radius around points in the images. This dataset is particularly useful for applications involving spatial analysis in urban settings. To generate this dataset you will first need to navigate to the `processed/buildings` directory. 
+The Rotterdam dataset consists of satellite images from the SpaceNet6 dataset, processed to count unique buildings within a specified radius around points in the images. This dataset is particularly useful for applications involving spatial analysis in urban settings. To generate this dataset you will first need to navigate to the `processing/buildings` directory. 
 
 To generate the Rotterdam dataset, use the following command:
 
