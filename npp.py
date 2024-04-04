@@ -234,7 +234,7 @@ def parse_args():
     # Datasets and hyperparameters
     parser.add_argument("--dataset", type=str, default="PinMNIST", help="Dataset name")
     parser.add_argument("--modality", type=str, default="PS-RGBNIR", help="Building dataset modality")
-    parser.add_argument("--feature", type=str, default="AE", help="feature from 'DDPM' or 'DDPM'")
+    parser.add_argument("--feature", type=str, default="AE", help="feature from 'AE' or 'DDPM'")
     parser.add_argument("--mode", type=str, default="mesh", help="mode for 'mesh' or 'random'")
     parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
