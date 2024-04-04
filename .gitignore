@@ -169,5 +169,6 @@ history/
 apikey.txt
 results/
 datasets/
+data/
 scripts/*.bash
 processing/*.csv
