@@ -123,9 +123,10 @@ python data_synth_PinMNIST.py
 
 ### Rotterdam
 
-The Rotterdam dataset consists of satellite images from the SpaceNet6 dataset, processed to count unique buildings within a specified radius around points in the images. This dataset is particularly useful for applications involving spatial analysis in urban settings. To generate this dataset you will first need to navigate to the `processing/buildings` directory. 
+The Rotterdam dataset consists of satellite images from the SpaceNet6 dataset, processed to count unique buildings within a specified radius around points in the images. This dataset is particularly useful for applications involving spatial analysis in urban settings. To generate this dataset you will first need to download the dataset following the instructions on `https://spacenet.ai/rotterdam/` (Here we only used the first 1000 samples in the training set). Then place the desired modality folder (for example, `PS-RGBNIR`) and the `geojson_buildings`,  under `./data/Building`.
 
-To generate the Rotterdam dataset, use the following command:
+
+To generate the location and label information csv file for the Rotterdam dataset, use the following command:
 
 ```bash
 cd processing/buildings
