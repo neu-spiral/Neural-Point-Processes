@@ -253,7 +253,7 @@ def parse_args():
     parser.add_argument("--manual_lr", action='store_true', default=False, help="Do not use Custom LR Finder")
 
     # List of sigma values
-    parser.add_argument("--sigmas", nargs="+", type=float, default=[0, 0.1, 0.2, 0.5, 1, 2],
+    parser.add_argument("--sigmas", nargs="+", type=float, default=[0],
                         help="List of sigma values to test")
 
     # Model configuration
