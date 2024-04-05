@@ -29,7 +29,7 @@ After installing Docker. Follow these steps to reproduce our results and experim
    ```bash
    cd Satellite_Fusion
    ```
-   After cloning the repository, please refer to our [Data Description](#data-description) section to download the data and place it in the [data](data) folder.
+   After cloning the repository, please refer to our [Data Description](#data-description-and-generation) section to download the data and place it in the [data](data) folder.
 
 3. **Build the Docker image**:
    Build a Docker image named `npp` (you can choose any name you like) with the Dockerfile provided in the repository.
