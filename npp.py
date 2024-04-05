@@ -361,9 +361,9 @@ def main():
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize()  # Resize to 100x100
     ])        
-    
+    # As DDPM does not work well with Rotterdam Building dataset, we have not explored this dataset with different modalities with DDPM
     if dataset == "Building":
-        root_dir = "/work/USACE_KRI/Project_1/spacenet/aoi_11_rotterdam/train/train/AOI_11_Rotterdam/"+modality+"/"
+        root_dir = f"./data/Building/{modality}/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
                                      root_dir=root_dir, modality=modality,
                                      transform=transform)

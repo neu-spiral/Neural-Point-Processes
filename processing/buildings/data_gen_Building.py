@@ -1,24 +1,18 @@
 import os
-from os.path import dirname as up
 import math
 import glob
 import random
 import numpy as np
 import pandas as pd
-import rasterio as rio
-from rasterio.windows import Window, get_data_window
 import matplotlib.pyplot as plt
 import geopandas
-from shapely.geometry import Polygon, MultiPolygon
-import pyproj
-import shapely.ops
-from shapely.geometry import shape
-from geopandas import GeoSeries
+from shapely.geometry import Polygon
 import time
 import sys
 # Get the parent directory
-sys.path.append('..')
+sys.path.append('../..')
 from tools.building_data_utils import *
+
 
 
 def create_meshgrid(gdf_, step=10, kw='geometry', plot=True):
@@ -125,15 +119,14 @@ def generate_pin_counts(data_list, rad=20, step=100, n_pins=100, stop=6, kw='geo
 
 
 # change datapath here
-sample_size = 1000
+sample_size = 10
 KW = 'PS-RGBNIR'
-data = "../data/Building"
+data = "../../data/Building"
 
 tifs_pth = f"{os.path.join(data, KW)}/*.tif"
 
 geojsons_pth =f"{os.path.join(data, 'geojson_buildings')}/*.geojson"
 print(tifs_pth, geojsons_pth)
-geojsons_pth =f"{os.path.join(data, 'geojson_buildings')}/*.geojson"
 print(f"total number of clean data:{len(remove_empty_geojsons(get_data(tifs_pth, geojsons_pth)))}")
 print(f"total number of data:{len(get_data(tifs_pth, geojsons_pth))}")
 # uncomment the line if you want first sample_size images
@@ -163,7 +156,7 @@ step_list = [288, 90, 27]
 for step in step_list:
     out = generate_pin_counts(datas, rad=30, step=step, stop=len(datas), kw='geometry', off=(0, 0), gridtype="mesh", plot=False)
     # pd.DataFrame(out).to_csv(f'building_{sample_size}_{KW}_{step}_{len(out[0][2])}_mesh.csv')
-    pd.DataFrame(out).to_csv(f'building_mesh_{step}.csv', index=False)
+    pd.DataFrame(out).to_csv(f'../../data/Building/mesh_{step}_step/pins.csv', index=False)
     print(len(out[0][2]))
     
     
@@ -176,6 +169,6 @@ for n_pins in n_pins_list:
     start = time.time()
     step = 200
     out = generate_pin_counts(datas, rad=30, n_pins=n_pins, stop=len(datas), kw='geometry', off=(0, 0), gridtype="random", plot=False)
-    pd.DataFrame(out).to_csv(f'Building_{n_pins}_random.csv', index=False)
+    pd.DataFrame(out).to_csv(f'../../data/Building/random_n_pins_{n_pins}/pins.csv', index=False)
     print(f"--- {time.time() - start} seconds ---")
     print(len(out[0][2]))

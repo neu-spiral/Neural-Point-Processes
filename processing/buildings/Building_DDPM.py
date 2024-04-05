@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append('../..')
 from torchvision.transforms import transforms, Compose, ToTensor, Lambda
 from torch.utils.data import DataLoader, random_split
 from tools.data_utils import *
@@ -95,7 +98,7 @@ opt = {
         0
     ],
      "path": {
-        "resume_state": "./history/pretrained_sr3/sr3_50_100"
+        "resume_state": "../../history/pretrained_sr3/sr3_50_100"
     },
 
     "datasets": {
@@ -187,18 +190,19 @@ opt = {
 
 # Hyperparameters
 dataset = "Building"
-store_path = f"./history/ddpm_model_{dataset}.pt"
 batch_size = 16
 input_channel = 3
+# put in your n
 n = 32
 resize = Resize256
-
+output_directory = f"../../data/Building_ddpm"
+# choose random/mesh
 data_folder = f"mesh_{n}_step"
-transformed_dataset = PinDataset(csv_file=f"./data/{dataset}/processed/{data_folder}/pins.csv",
-                                 root_dir=f"./data/{dataset}/images/",
+transformed_dataset = PinDataset(csv_file=f"../../data/{dataset}/{data_folder}/pins.csv",
+                                 root_dir=f"../../data/{dataset}/images/",
                                  transform=Compose([ToTensor(), resize(), Lambda()]))
 
 data_loader = DataLoader(transformed_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
 
-save_fm_by_batch(opt, data_loader, images_directory="/raid/home/shi.cheng/data/Building_ddpm/", output_directory=f"/raid/home/shi.cheng/data/Building_ddpm/{data_folder}")
+save_fm_by_batch(opt, data_loader, images_directory="../../data/Building_ddpm/", output_directory=f"../../data/Building_ddpm/{data_folder}")
