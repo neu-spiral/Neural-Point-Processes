@@ -7,7 +7,10 @@ WORKDIR /app
 # Install system dependencies required for compiling certain Python packages
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
     python3-dev \
+    gdal-bin \
+    libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only the requirements file, to cache the installed
@@ -25,4 +28,3 @@ EXPOSE 8888
 
 # Start bash to run experiments
 CMD ["/bin/bash"]
-

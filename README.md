@@ -29,7 +29,7 @@ After installing Docker. Follow these steps to reproduce our results and experim
    ```bash
    cd Satellite_Fusion
    ```
-   After cloning the repository, please refer to our [Data Description](#data-description) section to download the data and place it in the [data](data) folder.
+   After cloning the repository, please refer to our [Data Description](#data-description-and-generation) section to download the data and place it in the [data](data) folder.
 
 3. **Build the Docker image**:
    Build a Docker image named `npp` (you can choose any name you like) with the Dockerfile provided in the repository.
@@ -65,11 +65,11 @@ Users with a conda installation can proceed with the next steps:
    git clone https://github.com/neu-spiral/Satellite_Fusion.git
    ```
 
-2. **Create a Conda environment**:
+2. **Create a Conda environment and install the required dependencies**:
    Navigate to the project directory and create a Conda environment.
    ```bash
    cd Satellite_Fusion
-   conda create --name npp python=3.8.13
+   conda env create -f environment.yml
    ```
 
 3. **Activate the Conda environment**:
@@ -77,18 +77,12 @@ Users with a conda installation can proceed with the next steps:
    conda activate npp
    ```
 
-4. **Install the required dependencies**:
-   Install all the dependencies listed in the `requirements.txt` file.
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Running the project**:
+4. **Running the project**:
    After installation, you can run your scripts or start JupyterLab:
    ```bash
    jupyter lab
    ```
-After cloning the repository and initializing the environment, please refer to our [Data Description](#data-description) section to download the data and place it in the [data](data) folder.
+After cloning the repository and initializing the environment, please refer to our [Data Description](#data-description-and-generation) section to download the data and place it in the [data](data) folder.
 
 ## Data Description and Generation
 
@@ -130,7 +124,7 @@ To generate the location and label information csv file for the Rotterdam datase
 
 ```bash
 cd processing/buildings
-python data_synth_rotterdam.py
+python data_gen_Building.py
 ```
 
 After generating each dataset, make sure that the generated data is in the [data](data) folder as expected by the scripts detailed in the [Usage](#usage) section. This setup ensures your models can be trained and evaluated correctly using the newly generated datasets.
