@@ -43,10 +43,13 @@ def pseudo_inverse(kernel_matrix, epsilon=1e-5):
 
 
 class NPPLoss(nn.Module):
-    def __init__(self, identity, sigma=1.0):
+    def __init__(self, identity, sigma=1.0, learn_kernel=False):
         super(NPPLoss, self).__init__()
         self.identity = identity
-        self.sigma = sigma  # Add sigma as an instance variable
+        if learn_kernel:
+            self.sigma = nn.Parameter(torch.tensor(initial_sigma))
+        else:
+            self.sigma = sigma  # Add sigma as an instance variable
     
     @lru_cache(maxsize=128)
     def compute_kernel(self, pins):

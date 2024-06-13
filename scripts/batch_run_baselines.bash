@@ -12,6 +12,7 @@
 #SBATCH --time=8:00:00
 #module unload anaconda3
 # module load cuda/11.0
-source /home/shi.cheng/anaconda3/bin/activate pycox
+
+source path_to_env env
 
 python npp.py --dataset $1 --feature $2 --mode $3 --num_encoder 64 32 --num_decoder 64 --n 1000 --d $4 --n_pins $5 --epochs 200 --num_runs 1 --deeper --manual_lr --experiment_name $6 --sigmas $7 --modality $8
