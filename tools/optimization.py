@@ -4,7 +4,7 @@ from tools.losses import NPPLoss, gaussian_kernel_matrix
 from torcheval.metrics.functional import r2_score
 import torch.optim.lr_scheduler as lr_scheduler
 import scipy
-
+import os
 
 class EarlyStoppingCallback:
     def __init__(self, patience=10, min_delta=0.001):
@@ -72,6 +72,9 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
                     val_loss += criterion(y_val, val_outputs, p_val).item()
 
             val_loss /= len(val_dataloader)  # Average validation loss
+            
+            if not os.path.exists(f'./history/{exp_name}/{experiment_id}'):
+                os.makedirs(f'./history/{exp_name}/{experiment_id}')
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 # Save the model

@@ -47,7 +47,7 @@ class NPPLoss(nn.Module):
         super(NPPLoss, self).__init__()
         self.identity = identity
         if learn_kernel:
-            self.sigma = nn.Parameter(torch.tensor(initial_sigma))
+            self.sigma = nn.Parameter(torch.tensor(sigma))
         else:
             self.sigma = sigma  # Add sigma as an instance variable
     

@@ -123,9 +123,9 @@ def main():
             print(f"Save data for {density} and {l}")
             for folder in ["PinMNIST", "PinMNIST_ddpm"]:
                 if mesh:
-                    data_folder = f"../../data/{folder}/mesh_{d[i]}step_{28}by{28}pixels_{r}radius_{seed}seed/"
+                    data_folder = f"../../data/{folder}/mesh_{d[i]}step/"
                 else:
-                    data_folder = f"../../data/{folder}/random_fixedTrue_{n_pins[i]}pins_{28}by{28}pixels_{r}radius_{seed}seed/"
+                    data_folder = f"../../data/{folder}/random_{n_pins[i]}pins/"
                 os.makedirs(data_folder, exist_ok=True)
                 if (folder.split("_")[-1] == "ddpm"):
                     save_data(ddpm_images, pins, labels, f"../../data/{folder}/", data_folder)
