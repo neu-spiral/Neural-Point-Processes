@@ -172,7 +172,7 @@ def parse_args():
 
     # List of sigma values
 
-    parser.add_argument("--sigma", type=int, default=0, help="a single sigma values to test (0 indicates MSE)")
+    parser.add_argument("--sigma", type=float, default=0, help="a single sigma values to test (0 indicates MSE)")
 
     # Model configuration
     parser.add_argument("--num_encoder", nargs="+", type=int, default=[32, 16], help="List of encoder kernel sizes")
