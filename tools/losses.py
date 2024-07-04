@@ -43,18 +43,23 @@ def pseudo_inverse(kernel_matrix, epsilon=1e-5):
 
 
 class NPPLoss(nn.Module):
-    def __init__(self, identity, sigma=1.0):
+    def __init__(self, identity, sigma=1.0, noise=0, learn_kernel=False):
         super(NPPLoss, self).__init__()
         self.identity = identity
-        self.sigma = sigma  # Add sigma as an instance variable
-    
+        self.noise = noise
+        self.learn_kernel = learn_kernel
+        if self.learn_kernel:
+            self.sigma = nn.Parameter(torch.tensor(sigma))
+        else:
+            self.sigma = sigma
+
     @lru_cache(maxsize=128)
     def compute_kernel(self, pins):
         matrix_list = []
         for i in range(len(pins)):
             X = Y = pins[i].float()
             kernel_matrix = gaussian_kernel_matrix(X, Y, self.sigma)  # Use self.sigma
-            pseudo_inv_matrix = pseudo_inverse(kernel_matrix)
+            pseudo_inv_matrix = pseudo_inverse(kernel_matrix)+self.noise*torch.eye(len(X), device=X.device)
             matrix_list.append(pseudo_inv_matrix)
         return matrix_list
     
@@ -73,6 +78,8 @@ class NPPLoss(nn.Module):
                     (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]]).t(),
                     torch.matmul(matrix_list[i], y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]])
                 )
-            matrix_list = []
+                if self.learn_kernel:
+                    loss += 1/len(y_true[i]) * torch.logdet(matrix_list[i])
+
         loss /= len(y_true)
         return loss

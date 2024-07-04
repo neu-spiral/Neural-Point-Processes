@@ -1,0 +1,40 @@
+training start for sigma:0.1
+Validation Loss: 1.9629
+Validation Loss: 2.0000
+Validation Loss: 2.0528
+New LR:  0.001
+Validation Loss: 1.9252
+Validation Loss: 1.9173
+New LR:  0.0001
+Validation Loss: 1.9909
+Validation Loss: 2.0237
+Validation Loss: 1.9283
+Validation Loss: 1.9811
+Validation Loss: 1.9587
+Validation Loss: 1.8140
+Validation Loss: 1.9125
+Validation Loss: 1.8699
+Validation Loss: 1.7381
+Validation Loss: 2.0030
+Validation Loss: 2.0067
+Validation Loss: 1.9252
+Validation Loss: 1.9301
+Validation Loss: 2.0176
+Validation Loss: 2.0607
+Validation Loss: 1.9040
+Validation Loss: 1.9362
+Validation Loss: 1.9289
+Validation Loss: 2.1179
+Validation Loss: 1.9599
+Validation Loss: 1.8900
+Validation Loss: 1.9489
+Validation Loss: 1.8851
+Early stopping after 140 epochs.
+NPP sigma=0.1 Test loss:2.032, R2 loss:-0.217, GP Test loss:2.032, GP R2 loss:-0.217
+metrics saved
+start saving losses!
+Percent testing 0.25
+Percent testing 0.5
+Percent testing 0.75
+Percent testing 1.0
+Time Elapsed: 0.32230471425586277 hours

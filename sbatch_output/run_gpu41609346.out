@@ -1,0 +1,47 @@
+training start for sigma:0.0
+Validation Loss: 1.6085
+Validation Loss: 1.4870
+Validation Loss: 1.4204
+Validation Loss: 1.3820
+Validation Loss: 1.3850
+Validation Loss: 1.3746
+Validation Loss: 1.2536
+Validation Loss: 0.9073
+Validation Loss: 0.9080
+Validation Loss: 0.8615
+Validation Loss: 0.8642
+Validation Loss: 0.7583
+Validation Loss: 0.7785
+Validation Loss: 0.7283
+Validation Loss: 0.7755
+Validation Loss: 0.7325
+Validation Loss: 0.7306
+Validation Loss: 0.7677
+Validation Loss: 0.7222
+Validation Loss: 0.7447
+Validation Loss: 0.7557
+Validation Loss: 0.7915
+New LR:  0.001
+Validation Loss: 0.7344
+Validation Loss: 0.7518
+Validation Loss: 0.7062
+Validation Loss: 0.6931
+Validation Loss: 0.7739
+Validation Loss: 0.7480
+Validation Loss: 0.6853
+Validation Loss: 0.7853
+Validation Loss: 0.7771
+Validation Loss: 0.7749
+Validation Loss: 0.7892
+Validation Loss: 0.8338
+Validation Loss: 0.7844
+Validation Loss: 0.7477
+Validation Loss: 0.7851
+Validation Loss: 0.7842
+Validation Loss: 0.8094
+Validation Loss: 0.8654
+MSE Test loss:0.651
+R2 Test loss:-0.081
+metrics saved
+start saving losses!
+Time Elapsed: 2.052718729774157 hours
