@@ -332,24 +332,30 @@ def main():
         folder = f"{dataset}"
 
     if dataset == "PinMNIST":
+        test_data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
         if mesh:
             data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
             config['n_pins'] = (28 // d + 1) ** 2
-        else:
-            data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
+        else: # Random pins 
+            data_folder = test_data_folder
+        
     elif dataset == "Synthetic":
         folder += "/28by28pixels_1000images_123456seed"
+        test_data_folder = f"./data/{folder}/random_{n_pins}pins"
         if mesh:
             data_folder = f"./data/{folder}/mesh_{d}step_pins"
             config['n_pins'] = (28 // d + 1) ** 2
         else:
-            data_folder = f"./data/{folder}/random_{n_pins}pins"
+            
+            data_folder = test_data_folder
     elif dataset == "Building":
+        test_data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
         if mesh:
             data_folder = f"./data/{folder}/mesh_{d}_step"
             config['n_pins'] = (100 // d + 1) ** 2
         else:
             data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
+            data_folder = test_data_folder
     
     if dataset == "Building":
         transform = transforms.Compose([
@@ -367,9 +373,14 @@ def main():
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
                                      root_dir=root_dir, modality=modality,
                                      transform=transform)
+        test_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
+                                     root_dir=root_dir, modality=modality,
+                                     transform=transform)
     else:
         root_dir=f"./data/{folder}/images/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
+                                     root_dir=root_dir, transform=transform)
+        test_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
                                      root_dir=root_dir, transform=transform)
 
     
@@ -388,6 +399,8 @@ def main():
         train_dataset = Subset(transformed_dataset, train_indices)
         val_dataset = Subset(transformed_dataset, val_indices)
         test_dataset = Subset(transformed_dataset, test_indices)
+        # Use the indices to create new test datasets
+        eval_dataset = Subset(test_dataset, test_indices)
     else:
         # Split the dataset into train, validation, and test sets
         train_dataset, val_dataset, test_dataset = random_split(
@@ -396,11 +409,14 @@ def main():
         np.save(f'./data/{dataset}/train_indices.npy', train_dataset.indices)
         np.save(f'./data/{dataset}/val_indices.npy', val_dataset.indices)
         np.save(f'./data/{dataset}/test_indices.npy', test_dataset.indices)
+        # Use the indices to create new test datasets
+        eval_dataset = Subset(test_dataset, test_dataset.indices)
 
     # Create your DataLoader with the custom_collate_fn
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
+    eval_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
     if not manual_lr:
         model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
@@ -461,11 +477,11 @@ def main():
                 raise Exception(
                     "The model you provided does not correspond with the selected architecture. Please revise and try again.")
             # NPP
-            for percent in [0.25, 0.50, 0.75, 1.00]:
+            for percent in [0.00, 0.25, 0.50, 0.75, 1.00]:
                 print(f'Percent testing {percent}')  
-                best_NPP_test_loss, best_R2_test_loss_NPP = evaluate_model(autoencoder_NPP, test_loader, input_channel, device,
+                best_NPP_test_loss, best_R2_test_loss_NPP = evaluate_model(autoencoder_NPP, eval_loader, input_channel, device,
                                                        partial_label_GP=False, partial_percent=percent)
-                GP_best_NPP_test_loss, best_R2_test_loss_GP = evaluate_model(autoencoder_NPP, test_loader, input_channel, device,
+                GP_best_NPP_test_loss, best_R2_test_loss_GP = evaluate_model(autoencoder_NPP, eval_loader, input_channel, device,
                                                           partial_label_GP=True, partial_percent=percent)
                 # Write output into file
                 filename = f"test_{folder.split('/')[0]}_{percent}.txt"
