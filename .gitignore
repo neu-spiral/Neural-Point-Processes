@@ -164,11 +164,11 @@ cython_debug/
 
 #Custom
 lightning_logs/
-data/
 checkpoints/
 history/
 apikey.txt
 results/
 datasets/
+data/
 scripts/*.bash
 processing/*.csv

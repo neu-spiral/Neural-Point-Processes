@@ -148,8 +148,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
             else:
                 # run NPP
                 learn_kernel = False if kernel == "fixed_RBF" else True
-                criterion = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)               
-                
+                criterion = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)                              
                 model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader,
                                                                              input_channel, epochs, \
                                                                              val_every_epoch, lr,
@@ -336,17 +335,16 @@ def main():
 
     if dataset == "PinMNIST":
         if mesh:
-            data_folder = f"./data/{folder}/mesh_{d}step_{28}by{28}pixels_{r}radius_{seed}seed"
-            config['n_pins'] = (28 // d + 1) ** 2
-        else:
-            data_folder = f"./data/{folder}/random_fixedTrue_{n_pins}pins_{28}by{28}pixels_{r}radius_{seed}seed"
-    elif dataset == "Synthetic":
-        folder += "/28by28pixels_1000images_123456seed"
-        if mesh:
-            data_folder = f"./data/{folder}/mesh_{d}step_pins"
+            data_folder = f"./data/{folder}/mesh_{d}step"
             config['n_pins'] = (28 // d + 1) ** 2
         else:
             data_folder = f"./data/{folder}/random_{n_pins}pins"
+    elif dataset == "Synthetic":
+        if mesh:
+            data_folder = f"./data/{folder}/28by28pixels_1000images_123456seed/mesh_{d}step_pins"
+            config['n_pins'] = (28 // d + 1) ** 2
+        else:
+            data_folder = f"./data/{folder}/28by28pixels_1000images_123456seed/random_{n_pins}pins"
     elif dataset == "Building":
         if mesh:
             data_folder = f"./data/{folder}/mesh_{d}_step"
