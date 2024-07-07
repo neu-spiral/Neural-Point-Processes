@@ -422,7 +422,7 @@ def main():
             else:
                 # the NPP loss case
                 learn_kernel = False if kernel == "fixed_RBF" else True
-                criterion = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)
+                criterion_NPP = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)
                 lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
                 lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
                 best_lr_NPP = lr_finder_NPP.find_best_lr()
