@@ -103,6 +103,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     best_sigma_NPP = float('inf')
     config['experiment_id'] = experiment_id
     deeper = config['deeper']
+    kernel = config['kernel']
     manual_lr = config['manual_lr']
     learning_rates = config['best_lrs']
     losses = {}
@@ -127,7 +128,6 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
             print(f"training start for sigma:{sigma}")
             if sigma == 0:
                 # run plain
-                
                 criterion = NPPLoss(identity=True).to(device)
                 model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader,
                                                                              input_channel, epochs, \
@@ -147,8 +147,8 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
                 r2_losses_npp_false.append(r2_loss_npp_false)        
             else:
                 # run NPP
-                criterion = NPPLoss(identity=False, sigma=sigma).to(device)               
-                
+                learn_kernel = False if kernel == "fixed_RBF" else True
+                criterion = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)                              
                 model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader,
                                                                              input_channel, epochs, \
                                                                              val_every_epoch, lr,
@@ -260,6 +260,7 @@ def parse_args():
     parser.add_argument("--num_encoder", nargs="+", type=int, default=[64, 32], help="List of encoder kernel sizes")
     parser.add_argument("--num_decoder", nargs="+", type=int, default=[64], help="List of decoder kernel sizes")
     parser.add_argument("--deeper", action='store_true', default=False, help="Add extra convolutional layer for the model")
+    parser.add_argument("--kernel", type=str, default="fixed_RBF", help="fixed_RBF or learnable kernels: RBF, Spectral Mixture'")
     
     # Experiment title
     parser.add_argument("--experiment_name", type=str, default=None, help="Define if you want to save the generated experiments in an specific folder")
@@ -299,6 +300,7 @@ def main():
     val_every_epoch = args.val_every_epoch
     num_runs = args.num_runs
     manual_lr = args.manual_lr
+    kernel = args.kernel
 
     config = vars(args)
     config['seed'] = seed
@@ -338,7 +340,7 @@ def main():
             config['n_pins'] = (28 // d + 1) ** 2
         else: # Random pins 
             data_folder = test_data_folder
-        
+
     elif dataset == "Synthetic":
         folder += "/28by28pixels_1000images_123456seed"
         test_data_folder = f"./data/{folder}/random_{n_pins}pins"
@@ -346,7 +348,7 @@ def main():
             data_folder = f"./data/{folder}/mesh_{d}step_pins"
             config['n_pins'] = (28 // d + 1) ** 2
         else:
-            
+
             data_folder = test_data_folder
     elif dataset == "Building":
         test_data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
@@ -356,7 +358,7 @@ def main():
         else:
             data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
             data_folder = test_data_folder
-    
+
     if dataset == "Building":
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
@@ -398,8 +400,8 @@ def main():
         # Use the indices to create new datasets
         train_dataset = Subset(transformed_dataset, train_indices)
         val_dataset = Subset(transformed_dataset, val_indices)
-        test_dataset = Subset(transformed_dataset, test_indices)
-        # Use the indices to create new test datasets
+        # test_dataset = Subset(transformed_dataset, test_indices)
+         # Use the indices to create new test datasets
         eval_dataset = Subset(test_dataset, test_indices)
     else:
         # Split the dataset into train, validation, and test sets
@@ -411,19 +413,20 @@ def main():
         np.save(f'./data/{dataset}/test_indices.npy', test_dataset.indices)
         # Use the indices to create new test datasets
         eval_dataset = Subset(test_dataset, test_dataset.indices)
-
     # Create your DataLoader with the custom_collate_fn
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
     eval_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
+    # Exploring LRs
     if not manual_lr:
         model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
         optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
         best_lrs = []
         for sigma in sigmas:
             if sigma == 0:
+                # the MSE case
                 criterion_MSE = NPPLoss(identity=True).to(device)
                 lr_finder_MSE = CustomLRFinder(model, criterion_MSE, optimizer, device=device)
                 lr_finder_MSE.find_lr(train_loader, input_channel=input_channel, start_lr=1e-5, end_lr=1, num_iter=20)
@@ -431,14 +434,16 @@ def main():
                 print(f"Best Learning Rate for MSE: {best_lr_MSE}")
                 best_lrs.append((0, best_lr_MSE))
             else:
-                criterion_NPP = NPPLoss(identity=False, sigma=sigma).to(device)
+                # the NPP loss case
+                learn_kernel = False if kernel == "fixed_RBF" else True
+                criterion_NPP = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)
                 lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
                 lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
                 best_lr_NPP = lr_finder_NPP.find_best_lr()
                 best_lrs.append((sigma, best_lr_NPP))
                 print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
     else:
-        best_lrs = [(sigma, 1e-2) for sigma in sigmas] # Initial LR for MSE and each sigma
+        best_lrs = [(sigma, 1e-3) for sigma in sigmas] # Initial LR for MSE and each sigma
     config['best_lrs'] = best_lrs
     # Run and save the pipeline data
     loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,
