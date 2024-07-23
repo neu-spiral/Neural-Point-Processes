@@ -107,11 +107,11 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
     manual_lr = config['manual_lr']
     learning_rates = config['best_lrs']
     losses = {}
-
     # Create storage directory and store the experiment configuration
-    if not os.path.exists(f'./history/{exp_name}/{experiment_id}'):
-        os.makedirs(f'./history/{exp_name}/{experiment_id}')
-    with open(f"./history/{exp_name}/{experiment_id}/config.json", "w") as outfile:
+    path = os.path.join(".", "history", exp_name, str(experiment_id))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    with open(os.path.join(path, "config.json"), "w") as outfile:
         json.dump(config, outfile)
 
     for run in range(num_runs):
@@ -443,7 +443,8 @@ def main():
                 best_lrs.append((sigma, best_lr_NPP))
                 print(f"Best Learning Rate for NPP sigma={sigma}: {best_lr_NPP}")
     else:
-        best_lrs = [(sigma, 1e-3) for sigma in sigmas] # Initial LR for MSE and each sigma
+        lr = 1e-3 if dataset == "PinMNIST" else 1e-2
+        best_lrs = [(sigma, lr) for sigma in sigmas] # Initial LR for MSE and each sigma
     config['best_lrs'] = best_lrs
     # Run and save the pipeline data
     loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,

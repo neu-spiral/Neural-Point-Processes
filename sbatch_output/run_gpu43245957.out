@@ -1,0 +1,131 @@
+training start for sigma:0.1
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0008
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.00064
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0005120000000000001
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0004096000000000001
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0003276800000000001
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0002621440000000001
+Validation Loss: -inf
+Early stopping after 75 epochs.
+NPP sigma=0.1 Test loss:76.760, R2 loss:-4307.333, GP Test loss:76.760, GP R2 loss:-4307.333
+training start for sigma:0.1
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0008
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.00064
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0005120000000000001
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0004096000000000001
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0003276800000000001
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0002621440000000001
+Validation Loss: -inf
+Early stopping after 75 epochs.
+NPP sigma=0.1 Test loss:114.110, R2 loss:-1.126, GP Test loss:114.110, GP R2 loss:-1.126
+training start for sigma:0.1
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0008
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.00064
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0005120000000000001
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0004096000000000001
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0003276800000000001
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+New LR:  0.0002621440000000001
+Validation Loss: -inf
+Early stopping after 75 epochs.
+NPP sigma=0.1 Test loss:91.684, R2 loss:-823.618, GP Test loss:91.684, GP R2 loss:-823.618
+metrics saved
+start saving losses!
+Best Learning Rate for NPP sigma=0.1: 0.0015848931924611134
+training start for sigma:0.1
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Early stopping after 75 epochs.
+NPP sigma=0.1 Test loss:75.256, R2 loss:-35428.723, GP Test loss:75.256, GP R2 loss:-35428.723
+training start for sigma:0.1
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Early stopping after 75 epochs.
+NPP sigma=0.1 Test loss:65.569, R2 loss:-8340.154, GP Test loss:65.569, GP R2 loss:-8340.154
+training start for sigma:0.1
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Validation Loss: -inf
+Early stopping after 75 epochs.
+NPP sigma=0.1 Test loss:76.168, R2 loss:-1622.023, GP Test loss:76.168, GP R2 loss:-1622.023
+metrics saved
+start saving losses!
