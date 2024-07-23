@@ -1,7 +1,0 @@
-usage: npp.py [-h] [--dataset DATASET] [--modality MODALITY] [--feature FEATURE] [--mode MODE] [--n N] [--d D]
-              [--n_pins N_PINS] [--partial_percent PARTIAL_PERCENT] [--r R] [--epochs EPOCHS]
-              [--batch_size BATCH_SIZE] [--learning_rate LEARNING_RATE] [--val_every_epoch VAL_EVERY_EPOCH]
-              [--num_runs NUM_RUNS] [--manual_lr] [--sigmas SIGMAS [SIGMAS ...]]
-              [--num_encoder NUM_ENCODER [NUM_ENCODER ...]] [--num_decoder NUM_DECODER [NUM_DECODER ...]]
-              [--deeper] [--experiment_name EXPERIMENT_NAME]
-npp.py: error: argument --dataset: expected one argument

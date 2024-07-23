@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 12, in <module>
-    from tools.losses import NPPLoss
-  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/tools/losses.py", line 46
-    <<<<<<< HEAD
-    ^
-IndentationError: expected an indented block
