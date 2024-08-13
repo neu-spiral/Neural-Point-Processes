@@ -372,7 +372,24 @@ class Resize256(object):
         
         return {'image': image, 'pins': pins, 'outputs': outputs}
 
+# Custom class to resize cars dataset
+class Resize200(object):
+    def __call__(self, sample, size=(200,200)):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+        # Resize the image to desired sized pixels
+        image = transforms.functional.resize(image, size)
+        
+        return {'image': image, 'pins': pins, 'outputs': outputs}
     
+class ExtractImage(object):
+    """Separate image and mask, and return image."""
+
+    def __call__(self, sample):
+        image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+        _, W, _ = image.shape
+        image = image[:, :W//2,  :]
+        return {'image': image, 'pins': pins, 'outputs': outputs}
+        
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
@@ -384,7 +401,7 @@ class ToTensor(object):
         # torch image: C x H x W
         if len(image.shape) == 2:
             image = image.reshape(image.shape[0], image.shape[1], 1)
-        if len(image.shape)==3 and image.shape[2] <= 20: #check if it is DDPM
+        if len(image.shape) == 3 and image.shape[2] <= 20: #check if it is DDPM
             image = image.transpose((2, 0, 1))
         image = image/255 
         return {'image': torch.from_numpy(image),

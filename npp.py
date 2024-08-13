@@ -325,7 +325,12 @@ def main():
                 input_channel = 3
             elif modality == "PS-RGBNIR-SAR":
                 input_channel = 8
-
+    elif dataset == "Cars":
+        if feature_extracted:
+            # TO DO: Check how many features does the DDPM version has
+            print('DDPM is still not available for this dataset')
+        else:
+            input_channel = 3
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if feature_extracted:
@@ -358,11 +363,27 @@ def main():
         else:
             data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
             data_folder = test_data_folder
+            
+    elif dataset == "Cars":
+        r = 100
+        test_data_folder = f"./data/{folder}/test/random_fixedTrue_{n_pins}pins_{800}by{800}pixels_{r}radius_{seed}seed"
+        if mesh:
+            train_data_folder = f"./data/{folder}/train/mesh_{d}step_{800}by{800}pixels_{r}radius_{seed}seed"
+            val_data_folder = f"./data/{folder}/val/mesh_{d}step_{800}by{800}pixels_{r}radius_{seed}seed"
+            config['n_pins'] = (800 // d + 1) ** 2
+        else: # Random pins 
+            data_folder = test_data_folder
 
     if dataset == "Building":
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
         Resize100(),  # Resize to 100x100
+    ])
+    elif dataset == "Cars":
+        transform = transforms.Compose([
+        ExtractImage(), # Get image from image and mask combination
+        ToTensor(),  # Convert to tensor (as you were doing)
+        Resize200(),  # Resize to 200x200
     ])
     else:
         transform = transforms.Compose([
@@ -378,13 +399,20 @@ def main():
         test_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
                                      root_dir=root_dir, modality=modality,
                                      transform=transform)
+    elif dataset == "Cars":
+        root_dir=f"./data/{folder}/images/"
+        train_dataset = PinDataset(csv_file=f"{train_data_folder}/pins.csv",
+                                     root_dir=root_dir, transform=transform)
+        val_dataset = PinDataset(csv_file=f"{val_data_folder}/pins.csv",
+                                     root_dir=root_dir, transform=transform)
+        eval_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
+                                     root_dir=root_dir, transform=transform)
     else:
         root_dir=f"./data/{folder}/images/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
                                      root_dir=root_dir, transform=transform)
         test_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
                                      root_dir=root_dir, transform=transform)
-
     
 
     dataset_size = len(transformed_dataset)
@@ -392,32 +420,33 @@ def main():
     val_size = int(0.10 * dataset_size)
     test_size = dataset_size - train_size - val_size
 
-
-    if os.path.exists(f"./data/{dataset}/train_indices.npy"):
-        train_indices = np.load(f'./data/{dataset}/train_indices.npy')
-        val_indices = np.load(f'./data/{dataset}/val_indices.npy')
-        test_indices = np.load(f'./data/{dataset}/test_indices.npy')
-        # Use the indices to create new datasets
-        train_dataset = Subset(transformed_dataset, train_indices)
-        val_dataset = Subset(transformed_dataset, val_indices)
-        # test_dataset = Subset(transformed_dataset, test_indices)
-         # Use the indices to create new test datasets
-        eval_dataset = Subset(test_dataset, test_indices)
-    else:
-        # Split the dataset into train, validation, and test sets
-        train_dataset, val_dataset, test_dataset = random_split(
-            transformed_dataset, [train_size, val_size, test_size]
-        )
-        np.save(f'./data/{dataset}/train_indices.npy', train_dataset.indices)
-        np.save(f'./data/{dataset}/val_indices.npy', val_dataset.indices)
-        np.save(f'./data/{dataset}/test_indices.npy', test_dataset.indices)
-        # Use the indices to create new test datasets
-        eval_dataset = Subset(test_dataset, test_dataset.indices)
+    if dataset != "Cars":
+        if os.path.exists(f"./data/{dataset}/train_indices.npy"):
+            train_indices = np.load(f'./data/{dataset}/train_indices.npy')
+            val_indices = np.load(f'./data/{dataset}/val_indices.npy')
+            test_indices = np.load(f'./data/{dataset}/test_indices.npy')
+            # Use the indices to create new datasets
+            train_dataset = Subset(transformed_dataset, train_indices)
+            val_dataset = Subset(transformed_dataset, val_indices)
+            # test_dataset = Subset(transformed_dataset, test_indices)
+             # Use the indices to create new test datasets
+            eval_dataset = Subset(test_dataset, test_indices)
+        else:
+            # Split the dataset into train, validation, and test sets
+            train_dataset, val_dataset, test_dataset = random_split(
+                transformed_dataset, [train_size, val_size, test_size]
+            )
+            np.save(f'./data/{dataset}/train_indices.npy', train_dataset.indices)
+            np.save(f'./data/{dataset}/val_indices.npy', val_dataset.indices)
+            np.save(f'./data/{dataset}/test_indices.npy', test_dataset.indices)
+            # Use the indices to create new test datasets
+            eval_dataset = Subset(test_dataset, test_dataset.indices)
+        eval_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
     # Create your DataLoader with the custom_collate_fn
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate_fn)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
-    eval_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
+    #test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
+    
 
     # Exploring LRs
     if not manual_lr:
