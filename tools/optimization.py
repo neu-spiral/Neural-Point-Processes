@@ -42,8 +42,11 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
             y_train = [tensor.to(device) for tensor in batch['outputs']]
 
             # Forward pass
-            outputs = model(x_train.float())
-            loss = criterion(y_train, outputs, p_train)
+            outputs, kernel_params = model(x_train.float())
+            if fc_output:
+                loss = criterion(y_train, outputs, p_train, kernel_params)
+            else:    
+                loss = criterion(y_train, outputs, p_train)
 
             # Backpropagation and optimization
             optimizer.zero_grad()
@@ -104,7 +107,7 @@ def train_model(model, train_dataloader, val_dataloader, input_channel, epochs, 
     return model, train_losses, val_losses, global_best_val_loss
 
 
-def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma, noise=1e-5):
+def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, params, noise=1e-5):
     """
     Calculate the posterior mean and covariance matrix for y2
     based on the corresponding input x2, the observations (y1, x1), 
@@ -115,10 +118,10 @@ def GP_prediction(x1, y1, mu1, x2, mu2, kernel_func, sigma, noise=1e-5):
     x1 = x1.float()
     x2 = x2.float()
     # Kernel of the observations
-    Cov11 = kernel_func(x1, x1, sigma) + (noise*torch.eye(len(x1))).to(x1.device)
+    Cov11 = kernel_func(x1, x1, params) + (noise*torch.eye(len(x1))).to(x1.device)
     # Kernel of observations vs to-predict
-    Cov12 = kernel_func(x1, x2, sigma)
-    Cov22 = kernel_func(x2, x2, sigma)
+    Cov12 = kernel_func(x1, x2, params)
+    Cov22 = kernel_func(x2, x2, params)
 
     solved = torch.linalg.solve(Cov11, Cov12).T
     # Compute posterior mean
@@ -147,7 +150,7 @@ def evaluate_model(model, dataloader, input_channel, device, sigma=1, partial_la
             x_test = batch['image'][:, :input_channel, :, :].to(device)  # batch of image tensors (batch * ch * h * w)
             p_test = [tensor.to(device) for tensor in batch['pins']]  # list of pin tensors
             y_test = [tensor.to(device) for tensor in batch['outputs']]  # list of output tensors
-            test_outputs = model(x_test.float())  # batch of 2D predictions [batch, 1, h, w]
+            test_outputs, fc_outputs = model(x_test.float())  # batch of 2D predictions [batch, 1, h, w]
             r2 = 0
             for i in range(len(x_test)):  # iterates over each image on the batch
                 num_samples = int(len(p_test[i]) * hidden_samples)  # test on half of the samples

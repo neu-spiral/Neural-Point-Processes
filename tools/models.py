@@ -3,19 +3,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Autoencoder(nn.Module):
-    """usage: autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)"""
-    def __init__(self, num_kernels_encoder, num_kernels_decoder, input_shape=32, input_channel=3, deeper=False, param_size=None):
+    def __init__(self, num_nodes_encoder, num_nodes_decoder, input_shape=32, input_channel=3, deeper=False, param_size=None):
         super(Autoencoder, self).__init__()
         self.input_shape = input_shape
         self.input_channel = input_channel
-        self.encoder = self._build_encoder(num_kernels_encoder, deeper)
-        self.decoder = self._build_decoder(num_kernels_decoder, num_kernels_encoder[-1], deeper)
+        self.encoder = self._build_encoder(num_nodes_encoder, deeper)
+        self.decoder = self._build_decoder(num_nodes_decoder, num_nodes_encoder[-1], deeper)
         
         # Initialize fully connected layer
         
         self.fc_output_size = param_size
         if self.fc_output_size:
-            self.fc_input_size = self._get_fc_input_size(num_kernels_encoder)
+            self.fc_input_size = self._get_fc_input_size(num_nodes_encoder)
             self.fc = nn.Linear(self.fc_input_size, self.fc_output_size)
         
     def _build_encoder(self, num_kernels, deeper):
@@ -55,7 +54,7 @@ class Autoencoder(nn.Module):
         
         return nn.Sequential(*layers)
     
-    def _get_fc_input_size(self, num_kernels_encoder):
+    def _get_fc_input_size(self, num_nodes_encoder):
         # Create a dummy input to get the size after the encoder
         with torch.no_grad():
             dummy_input = torch.zeros(1, self.input_channel, self.input_shape, self.input_shape)  # Assuming input images are 32x32
@@ -81,12 +80,12 @@ class Autoencoder(nn.Module):
     
     
 # class Autoencoder(nn.Module):
-#     """usage: autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)"""
-#     def __init__(self, num_kernels_encoder, num_kernels_decoder, input_channel=3, deeper=False):
+#     """usage: autoencoder = Autoencoder(num_nodes_encoder, num_nodes_decoder, input_channel=input_channel).to(device)"""
+#     def __init__(self, num_nodes_encoder, num_nodes_decoder, input_channel=3, deeper=False):
 #         super(Autoencoder, self).__init__()
 #         self.input_channel = input_channel
-#         self.encoder = self._build_encoder(num_kernels_encoder, deeper)
-#         self.decoder = self._build_decoder(num_kernels_decoder, num_kernels_encoder[-1], deeper)
+#         self.encoder = self._build_encoder(num_nodes_encoder, deeper)
+#         self.decoder = self._build_decoder(num_nodes_decoder, num_nodes_encoder[-1], deeper)
         
 #     def _build_encoder(self, num_kernels, deeper):
 #         layers = []

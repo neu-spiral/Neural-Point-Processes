@@ -88,8 +88,9 @@ def custom_collate_fn(batch):
         'outputs': outputs}
 
 
-def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader,
+def run_pipeline_ci(kernel, sigmas, num_nodes_encoder, num_nodes_decoder, train_loader, val_loader,
                     test_loader, input_channel, epochs, val_every_epoch, config, device, num_runs=3, exp_name=""):
+    '''run pipeline with confidence interval'''
     GP_test_losses_npp_true = []
     test_losses_npp_true = []
     test_losses_npp_false = []
@@ -122,8 +123,9 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
         GP_R2_losses_vs_sigma_npp_true = []
         for sigma in sigmas:
             early_stopping = EarlyStoppingCallback(patience=15, min_delta=0.001)
-            autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+            autoencoder = Autoencoder(num_nodes_encoder, num_nodes_decoder, input_channel=input_channel, deeper=deeper).to(device)
             lr = learning_rates[count][1]
+            if 
             optimizer = optim.Adam(autoencoder.parameters(), lr=lr)
             print(f"training start for sigma:{sigma}")
             if sigma == 0:
@@ -147,8 +149,7 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
                 r2_losses_npp_false.append(r2_loss_npp_false)        
             else:
                 # run NPP
-                learn_kernel = False if kernel == "fixed_RBF" else True
-                criterion = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)                              
+                criterion = NPPLoss(identity=False, kernel=kernel).to(device)                              
                 model, train_losses, val_losses, best_val_loss = train_model(autoencoder, train_loader, val_loader,
                                                                              input_channel, epochs, \
                                                                              val_every_epoch, lr,
@@ -182,15 +183,15 @@ def run_pipeline_ci(sigmas, num_kernels_encoder, num_kernels_decoder, train_load
 
 
 # Function to run the pipeline and save data
-def run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader,
+def run_and_save_pipeline(kernel, sigmas, num_nodes_encoder, num_nodes_decoder, train_loader, val_loader, test_loader,
                           input_channel, epochs, val_every_epoch, config, num_runs, exp_name, device):
     # Run the pipeline
     GP_test_loss_npp_true, test_loss_npp_true, test_loss_npp_false, r2_loss_npp_false, r2_losses_npp_true, GP_r2_losses_npp_true, best_sigma_NPP, experiment_id = run_pipeline_ci(
-        sigmas, num_kernels_encoder, num_kernels_decoder, train_loader, val_loader, test_loader, input_channel, epochs,
+        kernel, sigmas, num_nodes_encoder, num_nodes_decoder, train_loader, val_loader, test_loader, input_channel, epochs,
         val_every_epoch, config, device, num_runs, exp_name)
     partial_percent = config['partial_percent']
     # Run final testing
-    autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=config["deeper"]).to(device)
+    autoencoder = Autoencoder(num_nodes_encoder, num_nodes_decoder, input_channel=input_channel, deeper=config["deeper"]).to(device)
     if sigmas[0] == 0:
         # MSE
         autoencoder.load_state_dict(torch.load(f'./history/{exp_name}/{experiment_id}/best_model_MSE.pth'))
@@ -260,7 +261,8 @@ def parse_args():
     parser.add_argument("--num_encoder", nargs="+", type=int, default=[64, 32], help="List of encoder kernel sizes")
     parser.add_argument("--num_decoder", nargs="+", type=int, default=[64], help="List of decoder kernel sizes")
     parser.add_argument("--deeper", action='store_true', default=False, help="Add extra convolutional layer for the model")
-    parser.add_argument("--kernel", type=str, default="fixed_RBF", help="fixed_RBF or learnable kernels: RBF, Spectral Mixture'")
+    parser.add_argument("--kernel_mode", type=str, default="fixed", help="fixed or learnable, or predict")
+    parser.add_argument("--kernel", type=str, default="RBF", help="RBF or SM")
     
     # Experiment title
     parser.add_argument("--experiment_name", type=str, default=None, help="Define if you want to save the generated experiments in an specific folder")
@@ -293,14 +295,18 @@ def main():
     modality = args.modality
     batch_size = args.batch_size
     sigmas = args.sigmas  # Set the sigma values you want to test
-    num_kernels_encoder = args.num_encoder
-    num_kernels_decoder = args.num_decoder
+    num_nodes_encoder = args.num_encoder
+    num_nodes_decoder = args.num_decoder
     deeper = args.deeper
     learning_rate = args.learning_rate
     val_every_epoch = args.val_every_epoch
     num_runs = args.num_runs
     manual_lr = args.manual_lr
-    kernel = args.kernel
+    if args.kernel == "RBF":
+        kernel = RBFKernel(length_scale=1.0, kernel_mode="fixed")
+    elif args.kernel == "SM":
+        kernel = SMKernel(Q=4, D=2, params=None, kernel_mode="fixed")
+    kernel_mode = args.kernel_mode
 
     config = vars(args)
     config['seed'] = seed
@@ -419,9 +425,11 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
     eval_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate_fn)
 
+
+        
     # Exploring LRs
     if not manual_lr:
-        model = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+        model = Autoencoder(num_nodes_encoder, num_nodes_decoder, input_channel=input_channel, deeper=deeper).to(device)
         optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
         best_lrs = []
         for sigma in sigmas:
@@ -435,8 +443,8 @@ def main():
                 best_lrs.append((0, best_lr_MSE))
             else:
                 # the NPP loss case
-                learn_kernel = False if kernel == "fixed_RBF" else True
-                criterion_NPP = NPPLoss(identity=False, sigma=sigma, learn_kernel=learn_kernel).to(device)
+                
+                criterion_NPP = NPPLoss(identity=False, kernel=kernel).to(device)
                 lr_finder_NPP = CustomLRFinder(model, criterion_NPP, optimizer, device=device)
                 lr_finder_NPP.find_lr(train_loader, input_channel=input_channel, start_lr=1e-4, end_lr=1, num_iter=10)
                 best_lr_NPP = lr_finder_NPP.find_best_lr()
@@ -447,7 +455,7 @@ def main():
         best_lrs = [(sigma, lr) for sigma in sigmas] # Initial LR for MSE and each sigma
     config['best_lrs'] = best_lrs
     # Run and save the pipeline data
-    loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(sigmas, num_kernels_encoder, num_kernels_decoder,
+    loss_vs_sigma_data, _, experiment_id = run_and_save_pipeline(kernel, sigmas, num_nodes_encoder, num_nodes_decoder,
                                                               train_loader, val_loader, test_loader, \
                                                               input_channel, epochs, val_every_epoch, config,
                                                               num_runs, exp_name, device)
@@ -460,7 +468,7 @@ def main():
         raise Exception(f"Could not find experiment with id: {experiment_id}")
     else:
         if sigmas[0] == 0:
-            autoencoder_MSE = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+            autoencoder_MSE = Autoencoder(num_nodes_encoder, num_nodes_decoder, input_channel=input_channel, deeper=deeper).to(device)
             try:
                 autoencoder_MSE.load_state_dict(torch.load(f'./history/{exp_name}/{experiment_id}/best_model_MSE.pth'))
             except:
@@ -475,7 +483,7 @@ def main():
 
             
         else:
-            autoencoder_NPP = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel, deeper=deeper).to(device)
+            autoencoder_NPP = Autoencoder(num_nodes_encoder, num_nodes_decoder, input_channel=input_channel, deeper=deeper).to(device)
             # Load models
             try:
                 autoencoder_NPP.load_state_dict(torch.load(f'./history/{exp_name}/{experiment_id}/best_model_NPP.pth'))

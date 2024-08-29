@@ -44,46 +44,27 @@ def pseudo_inverse(kernel_matrix, epsilon=1e-5):
 
 
 class NPPLoss(nn.Module):
-    def __init__(self, identity, sigma=1.0, noise=0, learn_kernel=False):
+    def __init__(self, identity, kernel, noise=0):
         super(NPPLoss, self).__init__()
         self.identity = identity
+        self.kernel = kernel
         self.noise = noise
-        self.learn_kernel = learn_kernel
-        if self.learn_kernel:
-            self.sigma = nn.Parameter(torch.tensor(sigma))
-        else:
-            self.sigma = sigma
-            
-    @lru_cache(maxsize=128)
-    def compute_kernel(self, pins, sigma):
-        matrix_list = []
-        for i in range(len(pins)):
-            X = Y = pins[i].float()
-            kernel_matrix = gaussian_kernel_matrix(X, Y, sigma)  # Use sigma passed as argument
-            pseudo_inv_matrix = pseudo_inverse(kernel_matrix) + self.noise * torch.eye(len(X), device=X.device)
-            matrix_list.append(pseudo_inv_matrix)
-        return matrix_list
     
-    def forward(self, y_true, y_pred, pins, sigma=None):
-        if sigma is None:
-            sigma = self.sigma  # Use given sigma
-        
+    def forward(self, y_true, y_pred, pins):       
         loss = 0
         if self.identity:
             for i in range(len(y_true)):
-                loss += 1 / len(y_true[i]) * torch.matmul( 
-                    (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]]).t(),
-                    (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]])
-                )
-        else:
-            matrix_list = self.compute_kernel(tuple(pins), sigma)
-            for i in range(len(y_true)):
                 loss += 1 / len(y_true[i]) * torch.matmul(
-                    (y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]]).t(),
-                    torch.matmul(matrix_list[i], y_true[i] - y_pred[i].squeeze()[pins[i][:,0], pins[i][:,1]])
-                )
-                if self.learn_kernel:
-                    loss += 1 / len(y_true[i]) * torch.logdet(matrix_list[i])
+                    (y_true[i] - y_pred[i].squeeze()[pins[i][:, 0], pins[i][:, 1]]).t(),
+                    (y_true[i] - y_pred[i].squeeze()[pins[i][:, 0], pins[i][:, 1]]))
+                
+        else:
+            for i in range(len(y_true)):
+                diff = y_true[i] - y_pred[i].squeeze()[pins[i][:, 0], pins[i][:, 1]]
+                kernel_matrix = self.kernel(pins[i].float(), pins[i].float(), kernel_params[i] if kernel_params is not None else None)
+                noise_kernel = kernel_matrix+ self.noise * torch.eye(len(X), device=X.device)
+                pseudo_inv = pseudo_inverse(noise_kernel) 
+                loss += 1 / len(y_true[i]) * (torch.matmul(diff.t(), torch.matmul(pseudo_inv, diff))+torch.linalg.logdet(pseudo_inv))
 
         loss /= len(y_true)
         return loss
