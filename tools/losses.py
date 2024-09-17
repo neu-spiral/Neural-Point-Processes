@@ -3,6 +3,7 @@ import torch.nn as nn
 from functools import lru_cache
 from tools.kernels import RBFKernel, SMKernel
 
+
 def gaussian_kernel_matrix(X, Y, sigma):
     """
     Calculate the Gaussian kernel matrix between two sets of PyTorch tensors X and Y.
@@ -50,7 +51,7 @@ class NPPLoss(nn.Module):
         self.kernel = kernel
         self.noise = noise
     
-    def forward(self, y_true, y_pred, pins):       
+    def forward(self, y_true, y_pred, pins, kernel_params):       
         loss = 0
         if self.identity:
             for i in range(len(y_true)):
@@ -62,9 +63,9 @@ class NPPLoss(nn.Module):
             for i in range(len(y_true)):
                 diff = y_true[i] - y_pred[i].squeeze()[pins[i][:, 0], pins[i][:, 1]]
                 kernel_matrix = self.kernel(pins[i].float(), pins[i].float(), kernel_params[i] if kernel_params is not None else None)
-                noise_kernel = kernel_matrix+ self.noise * torch.eye(len(X), device=X.device)
-                pseudo_inv = pseudo_inverse(noise_kernel) 
-                loss += 1 / len(y_true[i]) * (torch.matmul(diff.t(), torch.matmul(pseudo_inv, diff))+torch.linalg.logdet(pseudo_inv))
+                noise_kernel = kernel_matrix+ self.noise * torch.eye(len(pins[i]), device=pins[i].device)
+                pseudo_inv = torch.linalg.pinv(noise_kernel) 
+                loss += 1 / len(y_true[i]) * (torch.matmul(diff.t(), torch.matmul(pseudo_inv, diff))+torch.logdet(noise_kernel))
 
         loss /= len(y_true)
         return loss
