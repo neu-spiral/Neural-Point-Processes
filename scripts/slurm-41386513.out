@@ -1,0 +1,32 @@
+Executing training: dataset PinMNIST, feature AE, mode mesh, d: 3
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature AE, mode mesh, d: 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature AE, mode random, npins 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature AE, mode random, npins 100
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature DDPM, mode mesh, d: 3
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature DDPM, mode mesh, d: 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature DDPM, mode random, npins 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset PinMNIST, feature DDPM, mode random, npins 100
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature AE, mode mesh, d: 3
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature AE, mode mesh, d: 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature AE, mode random, npins 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature AE, mode random, npins 100
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature DDPM, mode mesh, d: 3
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature DDPM, mode mesh, d: 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature DDPM, mode random, npins 10
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash
+Executing training: dataset Synthetic, feature DDPM, mode random, npins 100
+sbatch: error: Unable to open file /work/DNAL/sirera.m/NPP/Satellite_Fusion/scripts/batch_run_baselines.bash

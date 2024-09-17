@@ -2,47 +2,29 @@
 
 #activate your env before running this
 
-for dataset in Building #PinMNIST Synthetic
+for dataset in PinMNIST #Synthetic Building #
 do
-    for feature in AE
+    for feature in AE DDPM
     do
-         for d in 10 #32
-         do
-             for mode in mesh
-             do
-                 for n_pins in 10
-                 do
-                     for name in Mesh_MM
-                     do
-                        for modality in PS-RGBNIR-SAR PS-RGB #PS-RGBNIR  
-                        do
-                            for sigma in 0 0.1
-                            do
-                                echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
-                                sbatch ./scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $name $sigma $modality
-                            done
-                        done
-                     done
-                 done
-             done
-         done
-        for n_pins in 10 #100
+        for modality in PS-RGBNIR #PS-RGBNIR-SAR PS-RGB  
         do
-            for mode in random
+            for sigma in 0 0.1 0.2 0.5 1
             do
-                for d in 10
+                for d in 3 10 #32
                 do
-                    for name in Random_MM
-                    do
-                        for modality in PS-RGBNIR-SAR PS-RGB #PS-RGBNIR 
-                        do
-                            for sigma in 0 0.1
-                            do
-                                echo "Executing training: dataset $dataset, feature $feature, mode random, npins $n_pins"
-                                sbatch ./scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $name $sigma $modality
-                            done
-                        done
-                    done
+                    mode="mesh"
+                    n_pins=10                   
+                    name="${dataset}_${mode}"
+                    echo "Executing training: dataset $dataset, feature $feature, mode mesh, d: $d"
+                    sbatch ./scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $name $sigma $modality
+                done
+                for n_pins in 10 100
+                do
+                    mode="random"
+                    d=10
+                    name="${dataset}_${mode}"
+                    echo "Executing training: dataset $dataset, feature $feature, mode random, npins $n_pins"
+                    sbatch ./scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $name $sigma $modality
                 done
             done
         done

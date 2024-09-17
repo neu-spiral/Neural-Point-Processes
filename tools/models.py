@@ -3,18 +3,25 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Autoencoder(nn.Module):
-    """usage: autoencoder = Autoencoder(num_kernels_encoder, num_kernels_decoder, input_channel=input_channel).to(device)"""
-    def __init__(self, num_kernels_encoder, num_kernels_decoder, input_channel=3, deeper=False):
+    def __init__(self, num_encoder, num_decoder, input_shape=32, input_channel=3, deeper=False, param_size=None):
         super(Autoencoder, self).__init__()
+        self.input_shape = input_shape
         self.input_channel = input_channel
-        self.encoder = self._build_encoder(num_kernels_encoder, deeper)
-        self.decoder = self._build_decoder(num_kernels_decoder, num_kernels_encoder[-1], deeper)
+        self.encoder = self._build_encoder(num_encoder, self.input_channel, deeper)
+        self.decoder = self._build_decoder(num_decoder, num_encoder[-1], deeper)
         
-    def _build_encoder(self, num_kernels, deeper):
+        # Initialize fully connected layer
+        
+        self.fc_output_size = param_size
+        if self.fc_output_size:
+            self.fc_input_size = self._get_fc_input_size(num_encoder)
+            self.fc = nn.Linear(self.fc_input_size, self.fc_output_size)
+        
+    def _build_encoder(self, num_encoder, input_channel, deeper):
         layers = []
         
-        for out_channels in num_kernels:
-            layers.append(nn.Conv2d(self.input_channel, out_channels, kernel_size=3, padding=1))
+        for out_channels in num_encoder:
+            layers.append(nn.Conv2d(input_channel, out_channels, kernel_size=3, padding=1))
             layers.append(nn.ReLU())
             if deeper: # Extra layer that won't change the size
                 layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
@@ -22,15 +29,14 @@ class Autoencoder(nn.Module):
                 layers.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
                 layers.append(nn.ReLU())
             layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-            self.input_channel = out_channels  # Update input_channel for the next layer
+            input_channel = out_channels  # Update input_channel for the next layer
         
         return nn.Sequential(*layers)
     
-    def _build_decoder(self, num_kernels, input_channel, deeper):
+    def _build_decoder(self, num_decoder, input_channel, deeper):
         layers = []
-        
-        for i, out_channels in enumerate(num_kernels):
-            if i == 0 and len(num_kernels) > 1:
+        for i, out_channels in enumerate(num_decoder):
+            if i == 0 and len(num_decoder) > 1:
                 layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2, output_padding=1))
             else: 
                 layers.append(nn.ConvTranspose2d(input_channel, out_channels, kernel_size=2, stride=2))
@@ -47,12 +53,30 @@ class Autoencoder(nn.Module):
         
         return nn.Sequential(*layers)
     
+    def _get_fc_input_size(self, num_encoder):
+        # Create a dummy input to get the size after the encoder
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, self.input_channel, self.input_shape, self.input_shape)  # Assuming input images are 32x32
+            encoder_output = self.encoder(dummy_input)
+            flatten_shape = encoder_output.view(encoder_output.size(0), -1).size(1)
+            return flatten_shape
+    
     def forward(self, x):
         inputHdim, inputWdim = x.size()[2], x.size()[3]
         x = self.encoder(x)
+        
+        if self.fc_output_size:
+            # Flatten the output for the FC layer
+            x_flat = x.view(x.size(0), -1)
+            fc_output = self.fc(x_flat)
+        else:
+            fc_output = None
+        
+        # Reshape back to the input dimensions
         x = self.decoder(x)
         assert x.size()[1:] == (1, inputHdim, inputWdim), f"Output dimensions do not match the expected size [1, inputHdim, inputWdim], got {x.size()[1:]}"
-        return x
+        
+        return x, fc_output
 
 
 class MyBlock(nn.Module):
