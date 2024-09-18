@@ -157,7 +157,7 @@ class NeuralPointProcesses(nn.Module):
                     y_test[i] = y_sample
                     p_test[i] = p_sample
                     if torch.allclose(y_test[i], y_test[i][0], atol=1e-10):
-                        if torch.all(torch.eq((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]].cpu().numpy(), y_test[i].cpu().numpy())):
+                        if torch.all(torch.eq((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]], y_test[i])):
                             r2 += 1.0
                     else:
                         r2 += r2_score((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]].cpu().numpy(), y_test[i].cpu().numpy()).item()
