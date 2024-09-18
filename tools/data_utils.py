@@ -306,7 +306,7 @@ def save_data_by_mode(images, pins, labels, images_directory, output_directory, 
 class PinDataset(Dataset):
     """Synthetic Heatmaps dataset."""
 
-    def __init__(self, csv_file, root_dir, modality=None, transform=None, n=None):
+    def __init__(self, csv_file, root_dir, modality=None, transform=None, n=None, k=None):
         """
         Arguments:
             csv_file (string): Path to the csv file with annotations.
@@ -316,6 +316,8 @@ class PinDataset(Dataset):
         """
         self.modality = modality
         self.pins_frame = pd.read_csv(csv_file)
+        # Number of pins to pick from total
+        self.k = k
         if n is not None:
             self.pins_frame = self.pins_frame.sample(n=n)
         self.root_dir = root_dir
@@ -338,6 +340,9 @@ class PinDataset(Dataset):
             image = io.imread(img_name)
         pins = np.asarray(eval(self.pins_frame.iloc[idx, 1]))
         outputs = np.asarray(eval(self.pins_frame.iloc[idx, 2]))
+        if self.k is not None & k < len(pins):
+            ixs = random.sample(np.arange(n_pins).tolist(), k=k)
+            pins, outputs = pins[ixs], outputs[ixs]
         sample = {'image': image, 'pins': pins, 'outputs': outputs}
         if self.transform:
             sample = self.transform(sample)
