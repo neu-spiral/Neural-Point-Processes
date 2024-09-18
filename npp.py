@@ -198,7 +198,6 @@ def run_experiments(config, train_loader, val_loader,
     val_every_epoch = config['val_every_epoch']
     epochs = config['epochs']
     exp_name = config['experiment_name']
-    dataset = config['dataset']
     lr = config['lr']
     num_encoder = config['num_encoder']
     num_decoder = config['num_decoder']
