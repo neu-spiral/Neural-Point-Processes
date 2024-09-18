@@ -1,0 +1,18 @@
+new model saved at 0 epoch with global_best_val_loss: 105.05709457397461
+Validation Loss: 105.0571
+new model saved at 5 epoch with global_best_val_loss: 98.25861358642578
+Validation Loss: 98.2586
+Validation Loss: 101.8567
+Validation Loss: 102.4274
+New LR:  0.0008
+Validation Loss: 103.0825
+Validation Loss: 102.2894
+Validation Loss: 104.1237
+New LR:  0.00064
+Validation Loss: 100.7070
+Validation Loss: 102.0420
+New LR:  0.0005120000000000001
+Validation Loss: 101.8737
+Validation Loss: 104.0145
+New LR:  0.0004096000000000001
+Early stopping after 55 epochs.

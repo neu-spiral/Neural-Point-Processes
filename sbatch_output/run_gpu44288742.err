@@ -1,0 +1,15 @@
+/work/DNAL/shi.cheng/NPP/Satellite_Fusion/tools/kernels.py:23: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  log_length_scale = torch.tensor(kernel_params)
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 345, in <module>
+    main()
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 338, in main
+    run_experiments(config, train_loader, val_loader, eval_loader, input_channel, input_shape, device)
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 252, in run_experiments
+    NPP_test_loss, NPP_test_R2 = NPP.evaluate_model(eval_loader, partial_percent=percent)
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/tools/NeuralPointProcess.py", line 160, in evaluate_model
+    if torch.all(torch.eq((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]].cpu().numpy(), y_test[i].cpu().numpy())):
+TypeError: eq() received an invalid combination of arguments - got (numpy.ndarray, numpy.ndarray), but expected one of:
+ * (Tensor input, Tensor other, *, Tensor out)
+ * (Tensor input, Number other, *, Tensor out)
+

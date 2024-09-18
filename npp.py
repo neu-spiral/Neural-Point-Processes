@@ -198,7 +198,7 @@ def run_experiments(config, train_loader, val_loader,
     epochs = config['epochs']
     exp_name = config['experiment_name']
     dataset = config['dataset']
-    lr = 1e-4 if dataset == "PinMNIST" else 1e-2
+    lr = config['lr']
     num_encoder = config['num_encoder']
     num_decoder = config['num_decoder']
     kernel = config['kernel']
@@ -288,7 +288,7 @@ def parse_args():
     parser.add_argument("--modality", type=str, default="PS-RGBNIR", help="Building dataset modality")
     parser.add_argument("--feature", type=str, default="AE", help="feature from 'AE' or 'DDPM'")
     parser.add_argument("--mode", type=str, default="mesh", help="mode for 'mesh' or 'random'")
-    parser.add_argument("--n", type=int, default=100, help="Value for 'n'")
+    parser.add_argument("--lr", type=float, default=0.001, help="Value for initial learning rate")
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
     parser.add_argument("--r", type=int, default=3, help="Value for 'r'")

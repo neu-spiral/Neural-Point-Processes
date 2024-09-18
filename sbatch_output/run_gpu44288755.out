@@ -1,0 +1,42 @@
+new model saved at 0 epoch with global_best_val_loss: 69.60564804077148
+Validation Loss: 69.6056
+new model saved at 5 epoch with global_best_val_loss: 16.44970178604126
+Validation Loss: 16.4497
+new model saved at 10 epoch with global_best_val_loss: 2.3340723514556885
+Validation Loss: 2.3341
+new model saved at 15 epoch with global_best_val_loss: 1.7921403646469116
+Validation Loss: 1.7921
+new model saved at 20 epoch with global_best_val_loss: 1.1234081387519836
+Validation Loss: 1.1234
+new model saved at 25 epoch with global_best_val_loss: 0.9248306751251221
+Validation Loss: 0.9248
+new model saved at 30 epoch with global_best_val_loss: 0.8770154118537903
+Validation Loss: 0.8770
+Validation Loss: 1.0384
+new model saved at 40 epoch with global_best_val_loss: 0.7604372203350067
+Validation Loss: 0.7604
+Validation Loss: 1.1348
+New LR:  0.0008
+Validation Loss: 0.8151
+Validation Loss: 0.8096
+new model saved at 60 epoch with global_best_val_loss: 0.7081703841686249
+Validation Loss: 0.7082
+Validation Loss: 0.7380
+New LR:  0.00064
+Validation Loss: 0.7970
+Validation Loss: 0.7867
+new model saved at 80 epoch with global_best_val_loss: 0.6913323700428009
+Validation Loss: 0.6913
+new model saved at 85 epoch with global_best_val_loss: 0.6735822260379791
+Validation Loss: 0.6736
+Validation Loss: 0.6845
+Validation Loss: 0.7592
+Validation Loss: 0.6980
+Validation Loss: 0.7346
+Validation Loss: 0.7573
+Validation Loss: 1.6489
+New LR:  0.0005120000000000001
+Validation Loss: 0.9279
+Validation Loss: 0.7550
+Validation Loss: 0.6882
+Early stopping after 135 epochs.
