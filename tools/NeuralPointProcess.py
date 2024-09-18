@@ -185,7 +185,7 @@ class NeuralPointProcesses(nn.Module):
         Cov12 = self.kernel(x1, x2, kernel_param)
         Cov22 = self.kernel(x2, x2, kernel_param)
 
-        solved = torch.linalg.solve(Cov11, Cov12.T, left=False)
+        solved = torch.linalg.solve(Cov11, Cov12).T
         # Compute posterior mean
         # print(f'c11:{Cov11.shape}, c12:{Cov12.shape}, c22:{Cov22.shape}, solved:{solved.shape}')
         mu2_new = solved @ (y1 - mu1) + mu2

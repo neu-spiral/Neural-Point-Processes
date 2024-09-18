@@ -1,0 +1,173 @@
+new model saved at 0 epoch with global_best_val_loss: 99.88833236694336
+Validation Loss: 99.8883
+new model saved at 5 epoch with global_best_val_loss: 98.29477310180664
+Validation Loss: 98.2948
+Validation Loss: 101.3829
+New LR:  0.0008
+Validation Loss: 101.6650
+Validation Loss: 105.3032
+New LR:  0.00064
+Validation Loss: 102.9170
+Validation Loss: 101.6657
+Validation Loss: 101.3553
+Validation Loss: 100.1576
+New LR:  0.0005120000000000001
+Validation Loss: 101.0544
+new model saved at 50 epoch with global_best_val_loss: 98.06399154663086
+Validation Loss: 98.0640
+New LR:  0.0004096000000000001
+Validation Loss: 100.0328
+Validation Loss: 104.3419
+New LR:  0.0003276800000000001
+Validation Loss: 102.1490
+Validation Loss: 104.8484
+new model saved at 75 epoch with global_best_val_loss: 97.57458877563477
+Validation Loss: 97.5746
+Validation Loss: 101.6385
+New LR:  0.0002621440000000001
+new model saved at 85 epoch with global_best_val_loss: 97.40481567382812
+Validation Loss: 97.4048
+Validation Loss: 101.3530
+Validation Loss: 101.8973
+New LR:  0.00020971520000000012
+Validation Loss: 103.8329
+Validation Loss: 104.4948
+New LR:  0.0001677721600000001
+Validation Loss: 104.2717
+Validation Loss: 100.8523
+New LR:  0.00013421772800000008
+Validation Loss: 103.0490
+Validation Loss: 105.4469
+New LR:  0.00010737418240000007
+Validation Loss: 99.2180
+Early stopping after 135 epochs.
+Percent: 0.0| Loss: 119.5473747253418, R2: 0.0234375
+Percent: 0.25| Loss: 118.57663536071777, R2: -5.231083336657175e+44
+Percent: 0.5| Loss: 116.72146987915039, R2: -1.326475333600784e+44
+Percent: 0.75| Loss: 115.63133430480957, R2: -3.4598915217153064e+44
+Percent: 1.0| Loss: 112.05741691589355, R2: -9.101223175670774e+43
+new model saved at 0 epoch with global_best_val_loss: 54.858089447021484
+Validation Loss: 54.8581
+new model saved at 5 epoch with global_best_val_loss: 9.4090256690979
+Validation Loss: 9.4090
+new model saved at 10 epoch with global_best_val_loss: 1.1222429275512695
+Validation Loss: 1.1222
+new model saved at 15 epoch with global_best_val_loss: 0.9257846772670746
+Validation Loss: 0.9258
+new model saved at 20 epoch with global_best_val_loss: 0.7399623394012451
+Validation Loss: 0.7400
+new model saved at 25 epoch with global_best_val_loss: 0.7184708118438721
+Validation Loss: 0.7185
+Validation Loss: 0.7930
+new model saved at 35 epoch with global_best_val_loss: 0.6592437922954559
+Validation Loss: 0.6592
+new model saved at 40 epoch with global_best_val_loss: 0.6231351494789124
+Validation Loss: 0.6231
+Validation Loss: 0.6274
+Validation Loss: 0.6237
+Validation Loss: 0.6322
+Validation Loss: 0.6391
+new model saved at 65 epoch with global_best_val_loss: 0.5827396512031555
+Validation Loss: 0.5827
+new model saved at 70 epoch with global_best_val_loss: 0.5728845000267029
+Validation Loss: 0.5729
+new model saved at 75 epoch with global_best_val_loss: 0.5710562467575073
+Validation Loss: 0.5711
+Validation Loss: 0.6156
+Validation Loss: 0.6147
+new model saved at 90 epoch with global_best_val_loss: 0.557746559381485
+Validation Loss: 0.5577
+Validation Loss: 0.5813
+New LR:  0.0008
+new model saved at 100 epoch with global_best_val_loss: 0.5574961006641388
+Validation Loss: 0.5575
+Validation Loss: 0.5950
+Validation Loss: 0.6206
+new model saved at 115 epoch with global_best_val_loss: 0.552773654460907
+Validation Loss: 0.5528
+Validation Loss: 0.7581
+Validation Loss: 0.5676
+Validation Loss: 0.5574
+Validation Loss: 0.5664
+Validation Loss: 0.5866
+Validation Loss: 0.5801
+new model saved at 150 epoch with global_best_val_loss: 0.5476797521114349
+Validation Loss: 0.5477
+New LR:  0.00064
+Validation Loss: 0.5687
+Validation Loss: 0.6553
+Validation Loss: 0.5861
+Validation Loss: 0.5498
+Validation Loss: 0.5984
+Validation Loss: 0.5948
+Validation Loss: 0.6013
+Validation Loss: 0.6008
+Validation Loss: 0.5945
+Percent: 0.0| Loss: 0.5519065484404564, R2: 0.9646268578942844
+Percent: 0.25| Loss: 0.5518664196133614, R2: 0.9646276669001033
+Percent: 0.5| Loss: 0.55173309892416, R2: 0.9646303910225894
+Percent: 0.75| Loss: 0.5517691448330879, R2: 0.9646324722260832
+Percent: 1.0| Loss: 0.551405780017376, R2: 0.9646402973605469
+Validation Loss: 75.3453
+Validation Loss: 81.0273
+Validation Loss: 34.4120
+Validation Loss: 7.5468
+Validation Loss: 3.7850
+Validation Loss: 3.2586
+Validation Loss: 1.3153
+Validation Loss: 1.6303
+Validation Loss: 1.1527
+Validation Loss: 1.1143
+Validation Loss: 0.9633
+Validation Loss: 1.0497
+Validation Loss: 0.9783
+Validation Loss: 0.8923
+Validation Loss: 0.9618
+Validation Loss: 1.6577
+New LR:  0.0008
+Validation Loss: 0.9350
+Validation Loss: 0.8553
+Validation Loss: 0.8181
+Validation Loss: 0.8115
+Validation Loss: 0.7732
+Validation Loss: 0.7860
+Validation Loss: 0.7093
+Validation Loss: 0.7134
+Validation Loss: 0.7320
+Validation Loss: 0.7445
+Validation Loss: 0.6575
+Validation Loss: 0.9243
+Validation Loss: 0.7826
+New LR:  0.00064
+Validation Loss: 0.7034
+Validation Loss: 0.7073
+Validation Loss: 0.6888
+Validation Loss: 0.6449
+Validation Loss: 0.6419
+Validation Loss: 1.6440
+New LR:  0.0005120000000000001
+Validation Loss: 0.8379
+Validation Loss: 0.6955
+New LR:  0.0004096000000000001
+Validation Loss: 0.6688
+Validation Loss: 0.6563
+New LR:  0.0003276800000000001
+Validation Loss: 0.6988
+Percent: 0.0| Loss: 0.5519065484404564, R2: 0.9646268578942844
+Percent: 0.25| Loss: 0.5518664196133614, R2: 0.9646276669001033
+Percent: 0.5| Loss: 0.55173309892416, R2: 0.9646303910225894
+Percent: 0.75| Loss: 0.5517691448330879, R2: 0.9646324722260832
+Percent: 1.0| Loss: 0.551405780017376, R2: 0.9646402973605469
+Percent testing 0.0
+Percent: 0.0| Loss: 0.5519065484404564, R2: 0.9646268578942844
+Percent testing 0.25
+Percent: 0.25| Loss: 0.5518664196133614, R2: 0.9646276669001033
+Percent testing 0.5
+Percent: 0.5| Loss: 0.55173309892416, R2: 0.9646303910225894
+Percent testing 0.75
+Percent: 0.75| Loss: 0.5517691448330879, R2: 0.9646324722260832
+Percent testing 1.0
+Percent: 1.0| Loss: 0.551405780017376, R2: 0.9646402973605469
+metrics saved
+start saving losses!
+Time Elapsed: 0.2950868164830738 hours
