@@ -171,4 +171,5 @@ results/
 datasets/
 data/
 scripts/*.bash
+sbatch_output/
 processing/*.csv

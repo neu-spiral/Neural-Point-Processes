@@ -1,0 +1,18 @@
+/work/DNAL/shi.cheng/NPP/Satellite_Fusion/tools/losses.py:67: UserWarning: torch.linalg.svd: During SVD computation with the selected cusolver driver, batches 0 failed to converge. A more accurate method will be used to compute the SVD as a fallback. Check doc at https://pytorch.org/docs/stable/generated/torch.linalg.svd.html (Triggered internally at ../aten/src/ATen/native/cuda/linalg/BatchLinearAlgebraLib.cpp:697.)
+  pseudo_inv = torch.linalg.pinv(noise_kernel)
+Traceback (most recent call last):
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 345, in <module>
+    main()
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 338, in main
+    run_experiments(config, train_loader, val_loader, eval_loader, input_channel, input_shape, device)
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/npp.py", line 242, in run_experiments
+    train_losses, val_losses, best_val_loss = NPP.train_model(train_loader, val_loader,
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/tools/NeuralPointProcess.py", line 59, in train_model
+    loss = self.criterion(y_train, outputs, p_train, kernel_param)
+  File "/home/shi.cheng/anaconda3/envs/npp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/shi.cheng/anaconda3/envs/npp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/DNAL/shi.cheng/NPP/Satellite_Fusion/tools/losses.py", line 67, in forward
+    pseudo_inv = torch.linalg.pinv(noise_kernel) 
+torch._C._LinAlgError: linalg.svd: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated singular values (error code: 99).
