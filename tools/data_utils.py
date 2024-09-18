@@ -306,7 +306,7 @@ def save_data_by_mode(images, pins, labels, images_directory, output_directory, 
 class PinDataset(Dataset):
     """Synthetic Heatmaps dataset."""
 
-    def __init__(self, csv_file, root_dir, modality=None, transform=None):
+    def __init__(self, csv_file, root_dir, modality=None, transform=None, n=None):
         """
         Arguments:
             csv_file (string): Path to the csv file with annotations.
@@ -316,6 +316,8 @@ class PinDataset(Dataset):
         """
         self.modality = modality
         self.pins_frame = pd.read_csv(csv_file)
+        if n is not None:
+            self.pins_frame = self.pins_frame.sample(n=n)
         self.root_dir = root_dir
         self.transform = transform
 
@@ -376,8 +378,10 @@ class Resize256(object):
 class Resize200(object):
     def __call__(self, sample, size=(200,200)):
         image, pins, outputs = sample['image'], sample['pins'], sample['outputs']
+        _, original_size, _ = image.shape
         # Resize the image to desired sized pixels
         image = transforms.functional.resize(image, size)
+        pins = pins // (original_size // 200)
         
         return {'image': image, 'pins': pins, 'outputs': outputs}
     
