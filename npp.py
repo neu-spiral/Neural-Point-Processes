@@ -189,6 +189,7 @@ def run_experiments(config, train_loader, val_loader,
                     eval_loader, input_channel, input_shape, device):  
     best_val_loss_MSE = float('inf')
     best_val_loss_NPP = float('inf')
+    dataset = config['dataset']
     deeper = config['deeper']
     kernel = config['kernel']
     manual_lr = config['manual_lr']
@@ -205,7 +206,7 @@ def run_experiments(config, train_loader, val_loader,
     kernel_mode = config['kernel_mode']
     kernel_param = config['kernel_param']
     timestamp = int(time.time())
-    experiment_id = f"{config['kernel']}_{config['kernel_mode']}_{config['kernel_param']}_{timestamp}"
+    experiment_id = f"{timestamp}"
     if dataset == "COWC":
         input_shape = 200
     elif dataset == "Building":
@@ -215,7 +216,7 @@ def run_experiments(config, train_loader, val_loader,
         
     losses = {}
     # Create storage directory and store the experiment configuration
-    path = os.path.join(".", "history", exp_name, str(experiment_id))
+    path = os.path.join(".", "history", dataset, exp_name, str(experiment_id))
     if not os.path.exists(path):
         os.makedirs(path)
     with open(os.path.join(path, "config.json"), "w") as outfile:
@@ -256,14 +257,14 @@ def run_experiments(config, train_loader, val_loader,
         # MSE test
         NPP.load_best_model(experiment_id, exp_name)
         MSE_test_loss, MSE_test_R2 = NPP.evaluate_model(eval_loader)
-        f = open(f"./history/{exp_name}/{experiment_id}/results.txt", "w")
+        f = open(f"./history/{dataset}/{exp_name}/{experiment_id}/results.txt", "w")
         f.write(f"Results {experiment_id}: Best Val: {best_val_loss_MSE} \n MSE: {MSE_test_loss}, R2: {MSE_test_R2} ")
         f.close()
         print("metrics saved")
     else:
         # NPP test
         NPP.load_best_model(experiment_id, exp_name)
-        f = open(f"./history/{exp_name}/{experiment_id}/results.txt", "a")
+        f = open(f"./history/{dataset}/{exp_name}/{experiment_id}/results.txt", "a")
         f.write(f"Results {experiment_id}: Best Val: {best_val_loss_NPP} \n")
         for percent in [0.00, 0.25, 0.50, 0.75, 1.00]:
             print(f'Percent testing {percent}')  
@@ -277,7 +278,7 @@ def run_experiments(config, train_loader, val_loader,
         
     print("start saving losses!")
     # Save losses
-    save_loss(losses, f'./history/{exp_name}/{experiment_id}/losses.npy')
+    save_loss(losses, f'./history/{dataset}/{exp_name}/{experiment_id}/losses.npy')
 
 
 def parse_args():
