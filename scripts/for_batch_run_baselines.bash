@@ -31,7 +31,7 @@ do
                             if [ "$mode" == "random" ]; then
                                 for n_pins in "${n_pins_values[@]}"    
                                 do
-                                    n_pins=10  # Fixed n_pins for random mode
+                                    d=10  # Fixed n_pins for random mode
                                     name="${dataset}_${mode}_${n_pins}"
                                     echo "Executing: $dataset, $feature, $mode, d: $d, n_pins: $n_pins, kernel: $kernel, kernel_mode: $kernel_mode, param: $kernel_param, lr: $lr"
                                     sbatch ./scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $kernel $kernel_mode $kernel_param $lr $name
@@ -39,7 +39,7 @@ do
                             else  # mode is "mesh"
                                 for d in "${d_values[@]}"
                                 do
-                                    d=3  # Fixed d for mesh mode
+                                    n_pins=10  # Fixed d for mesh mode
                                     name="${dataset}_${mode}_${d}"
                                     echo "Executing: $dataset, $feature, $mode, d: $d, n_pins: $n_pins, kernel: $kernel, kernel_mode: $kernel_mode, param: $kernel_param, lr: $lr"
                                     sbatch ./scripts/batch_run_baselines.bash $dataset $feature $mode $d $n_pins $kernel $kernel_mode $kernel_param $lr $name

@@ -313,6 +313,7 @@ class PinDataset(Dataset):
             root_dir (string): Directory with all the images.
             transform (callable, optional): Optional transform to be applied
                 on a sample.
+            k(int): number of pins selected to use
         """
         self.modality = modality
         self.pins_frame = pd.read_csv(csv_file)
@@ -340,9 +341,10 @@ class PinDataset(Dataset):
             image = io.imread(img_name)
         pins = np.asarray(eval(self.pins_frame.iloc[idx, 1]))
         outputs = np.asarray(eval(self.pins_frame.iloc[idx, 2]))
-        if self.k is not None & k < len(pins):
-            ixs = random.sample(np.arange(n_pins).tolist(), k=k)
-            pins, outputs = pins[ixs], outputs[ixs]
+        if self.k:
+            if self.k < len(pins):
+                ixs = random.sample(np.arange(n_pins).tolist(), k=self.k)
+                pins, outputs = pins[ixs], outputs[ixs]
         sample = {'image': image, 'pins': pins, 'outputs': outputs}
         if self.transform:
             sample = self.transform(sample)
