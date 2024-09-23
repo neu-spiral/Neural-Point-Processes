@@ -319,7 +319,7 @@ class PinDataset(Dataset):
         self.pins_frame = pd.read_csv(csv_file)
         # Number of pins to pick from total
         self.k = k
-        if n is not None:
+        if n is not None and n < len(self.pins_frame):
             self.pins_frame = self.pins_frame.sample(n=n)
         self.root_dir = root_dir
         self.transform = transform
