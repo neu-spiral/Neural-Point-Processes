@@ -65,9 +65,9 @@ def data_prepare(config, seed):
             elif modality == "PS-RGBNIR-SAR":
                 input_channel = 8
     elif dataset == "Cars":
+        input_shape = 200
         if feature_extracted:
-            # TO DO: Check how many features does the DDPM version has
-            print('DDPM is still not available for this dataset')
+            input_channel = 73
         else:
             input_channel = 3
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -119,11 +119,17 @@ def data_prepare(config, seed):
         Resize100(),  # Resize to 100x100
     ])
     elif dataset == "Cars":
-        transform = transforms.Compose([
-        ExtractImage(), # Get image from image and mask combination
-        ToTensor(),  # Convert to tensor (as you were doing)
-        Resize200(),  # Resize to 200x200
-    ])
+        if feature_extracted:
+            transform = transforms.Compose([
+            ToTensor(),  # Convert to tensor (as you were doing)
+            Resize200(),  # Resize to 200x200
+            ])
+        else:
+            transform = transforms.Compose([
+            ExtractImage(), # Get image from image and mask combination
+            ToTensor(),  # Convert to tensor (as you were doing)
+            Resize200(),  # Resize to 200x200
+            ])
     else:
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
@@ -141,11 +147,11 @@ def data_prepare(config, seed):
     elif dataset == "Cars":
         root_dir=f"./data/{folder}/images/"
         train_dataset = PinDataset(csv_file=f"{train_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform)
+                                     root_dir=root_dir, transform=transform, n=700)
         val_dataset = PinDataset(csv_file=f"{val_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform)
+                                     root_dir=root_dir, transform=transform, n=100)
         eval_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform)
+                                     root_dir=root_dir, transform=transform, n=200)
     else:
         root_dir=f"./data/{folder}/images/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
