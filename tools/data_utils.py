@@ -412,7 +412,6 @@ class ToTensor(object):
         # torch image: C x H x W
         if len(image.shape) == 2:
             image = image.reshape(image.shape[0], image.shape[1], 1)
-            image = image/255 
         if len(image.shape) == 3 and image.shape[2] <= 20: #check if it is DDPM
             image = image.transpose((2, 0, 1))
             image = image/255 
