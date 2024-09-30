@@ -45,9 +45,9 @@ class NeuralPointProcesses(nn.Module):
         train_losses = []
         val_losses = []
 
-        scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.8, patience=10, min_lr=1e-4)
+        scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.1, patience=5, min_lr=1e-4)
         current_lr = self.optimizer.param_groups[0]["lr"]
-        early_stopping = EarlyStoppingCallback(patience=10, min_delta=0.001)
+        early_stopping = EarlyStoppingCallback(patience=15, min_delta=0.001)
         for epoch in range(epochs):
             total_loss = 0
             for batch in train_dataloader:
