@@ -319,7 +319,7 @@ class PinDataset(Dataset):
         self.pins_frame = pd.read_csv(csv_file)
         # Number of pins to pick from total
         self.k = k
-        if n is not None:
+        if n is not None and n < len(self.pins_frame):
             self.pins_frame = self.pins_frame.sample(n=n)
         self.root_dir = root_dir
         self.transform = transform
@@ -414,7 +414,7 @@ class ToTensor(object):
             image = image.reshape(image.shape[0], image.shape[1], 1)
         if len(image.shape) == 3 and image.shape[2] <= 20: #check if it is DDPM
             image = image.transpose((2, 0, 1))
-        image = image/255 
+            image = image/255 
         return {'image': torch.from_numpy(image),
                 'pins': torch.from_numpy(pins),
                 'outputs': torch.from_numpy(outputs).to(torch.float32)}

@@ -148,7 +148,7 @@ class UNet(nn.Module):
             MyBlock((dims[2], shape//4, shape//4), dims[2], dims[2])
         )
         self.down3 = nn.Sequential(
-            nn.Conv2d(dims[2], dims[2], 2, 1),
+            nn.Conv2d(dims[2], dims[2], 2, 1) if shape < 200 else nn.Conv2d(dims[2], dims[2], 3, 1, 1),
             nn.SiLU(),
             nn.Conv2d(dims[2], dims[2], 4, 2, 1)
         )
@@ -165,7 +165,7 @@ class UNet(nn.Module):
         self.up1 = nn.Sequential(
             nn.ConvTranspose2d(dims[2], dims[2], 4, 2, 1),
             nn.SiLU(),
-            nn.ConvTranspose2d(dims[2], dims[2], 2, 1)
+            nn.ConvTranspose2d(dims[2], dims[2], 2, 1) if shape < 200 else nn.ConvTranspose2d(dims[2], dims[2], 3, 1, 1)
         )
 
         self.te4 = self._make_te(time_emb_dim, dims[3])

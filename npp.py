@@ -65,7 +65,7 @@ def data_prepare(config):
             elif modality == "PS-RGBNIR-SAR":
                 input_channel = 8
     elif dataset == "Cars":
-        input_shape = 100
+        input_shape = 200
         if feature_extracted:
             input_channel = 73
         else:
@@ -129,7 +129,7 @@ def data_prepare(config):
             transform = transforms.Compose([
             ExtractImage(), # Get image from image and mask combination
             ToTensor(),  # Convert to tensor (as you were doing)
-            ResizeCars(),  # Resize to 200x200
+            Resize200(),  # Resize to 200x200
             ])
     else:
         transform = transforms.Compose([
@@ -148,11 +148,11 @@ def data_prepare(config):
     elif dataset == "Cars":
         root_dir=f"/work/DNAL/Datasets/{folder}/images/"
         train_dataset = PinDataset(csv_file=f"{train_data_folder}/pins.csv",
-                                     root_dir=f"{root_dir}train", transform=transform, n=700)
+                                     root_dir=root_dir, transform=transform, n=700)
         val_dataset = PinDataset(csv_file=f"{val_data_folder}/pins.csv",
-                                     root_dir=f"{root_dir}val", transform=transform, n=100)
+                                     root_dir=root_dir, transform=transform, n=100)
         eval_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
-                                     root_dir=f"{root_dir}test", transform=transform, n=200)
+                                     root_dir=root_dir, transform=transform, n=200)
     else:
         root_dir=f"./data/{folder}/images/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
