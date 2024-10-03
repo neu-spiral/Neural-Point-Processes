@@ -31,7 +31,7 @@ def custom_collate_fn(batch):
         'outputs': outputs}
 
 
-def data_prepare(config, seed):
+def data_prepare(config):
     dataset = config['dataset']
     mesh = True if config['mode'] == "mesh" else False
     feature_extracted = True if config['feature'] == "DDPM" else False
@@ -65,13 +65,13 @@ def data_prepare(config, seed):
             elif modality == "PS-RGBNIR-SAR":
                 input_channel = 8
     elif dataset == "Cars":
+        input_shape = 100
         if feature_extracted:
-            # TO DO: Check how many features does the DDPM version has
-            print('DDPM is still not available for this dataset')
+            input_channel = 73
         else:
             input_channel = 3
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    
     if feature_extracted:
         folder = f"{dataset}_ddpm"
     else:
@@ -105,13 +105,14 @@ def data_prepare(config, seed):
             
     elif dataset == "Cars":
         r = 100
-        test_data_folder = f"./data/{folder}/test/random_fixedTrue_{n_pins}pins_{800}by{800}pixels_{r}radius_{seed}seed"
+        test_data_folder = f"/work/DNAL/Datasets/{folder}/test/random_fixedTrue_{n_pins}pins_{800}by{800}pixels_{r}radius_4seed"
         if mesh:
-            train_data_folder = f"./data/{folder}/train/mesh_{d}step_{800}by{800}pixels_{r}radius_{seed}seed"
-            val_data_folder = f"./data/{folder}/val/mesh_{d}step_{800}by{800}pixels_{r}radius_{seed}seed"
+            train_data_folder = f"/work/DNAL/Datasets/{folder}/train/mesh_{d}step_{800}by{800}pixels_{r}radius_4seed"
+            val_data_folder = f"/work/DNAL/Datasets/{folder}/val/mesh_{d}step_{800}by{800}pixels_{r}radius_4seed"
             config['n_pins'] = (800 // d + 1) ** 2
         else: # Random pins 
-            data_folder = test_data_folder
+            train_data_folder = f"/work/DNAL/Datasets/{folder}/train/random_fixedTrue_{n_pins}pins_{800}by{800}pixels_{r}radius_4seed"
+            val_data_folder = f"/work/DNAL/Datasets/{folder}/val/random_fixedTrue_{n_pins}pins_{800}by{800}pixels_{r}radius_4seed"
 
     if dataset == "Building":
         transform = transforms.Compose([
@@ -119,11 +120,17 @@ def data_prepare(config, seed):
         Resize100(),  # Resize to 100x100
     ])
     elif dataset == "Cars":
-        transform = transforms.Compose([
-        ExtractImage(), # Get image from image and mask combination
-        ToTensor(),  # Convert to tensor (as you were doing)
-        Resize200(),  # Resize to 200x200
-    ])
+        if feature_extracted:
+            transform = transforms.Compose([
+            ToTensor(),  # Convert to tensor (as you were doing)
+            Resize200(),  # Resize to 200x200
+            ])
+        else:
+            transform = transforms.Compose([
+            ExtractImage(), # Get image from image and mask combination
+            ToTensor(),  # Convert to tensor (as you were doing)
+            ResizeCars(),  # Resize to 200x200
+            ])
     else:
         transform = transforms.Compose([
         ToTensor(),  # Convert to tensor (as you were doing)
@@ -139,13 +146,13 @@ def data_prepare(config, seed):
                                      root_dir=root_dir, modality=modality,
                                      transform=transform)
     elif dataset == "Cars":
-        root_dir=f"./data/{folder}/images/"
+        root_dir=f"/work/DNAL/Datasets/{folder}/images/"
         train_dataset = PinDataset(csv_file=f"{train_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform)
+                                     root_dir=f"{root_dir}train", transform=transform, n=700)
         val_dataset = PinDataset(csv_file=f"{val_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform)
+                                     root_dir=f"{root_dir}val", transform=transform, n=100)
         eval_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform)
+                                     root_dir=f"{root_dir}test", transform=transform, n=200)
     else:
         root_dir=f"./data/{folder}/images/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
@@ -153,12 +160,11 @@ def data_prepare(config, seed):
         test_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
                                      root_dir=root_dir, transform=transform)
 
-    dataset_size = len(transformed_dataset)
-    train_size = int(0.7 * dataset_size)
-    val_size = int(0.10 * dataset_size)
-    test_size = dataset_size - train_size - val_size
-
     if dataset != "Cars":
+        dataset_size = len(transformed_dataset)
+        train_size = int(0.7 * dataset_size)
+        val_size = int(0.10 * dataset_size)
+        test_size = dataset_size - train_size - val_size
         if os.path.exists(f"./data/{dataset}/train_indices.npy"):
             train_indices = np.load(f'./data/{dataset}/train_indices.npy')
             val_indices = np.load(f'./data/{dataset}/val_indices.npy')
@@ -193,7 +199,6 @@ def run_experiments(config, train_loader, val_loader,
     deeper = config['deeper']
     kernel = config['kernel']
     manual_lr = config['manual_lr']
-    # learning_rates = config['best_lrs']   
     num_runs = config['num_runs']
     val_every_epoch = config['val_every_epoch']
     epochs = config['epochs']
@@ -225,7 +230,7 @@ def run_experiments(config, train_loader, val_loader,
     for run in range(num_runs):
         if kernel_param == 0:
             # run MSE train
-            NPP = NeuralPointProcesses(identity=True, num_encoder=num_encoder, num_decoder=num_decoder, input_shape=input_shape, input_channel=input_channel, deeper=deeper, lr=lr)
+            NPP = NeuralPointProcesses(identity=True, num_encoder=num_encoder, num_decoder=num_decoder, input_shape=input_shape, input_channel=input_channel, deeper=deeper, lr=lr, device=device)
             train_losses, val_losses, best_val_loss = NPP.train_model(train_loader, val_loader,
                                                                          epochs, experiment_id, exp_name, 
                                                                          best_val_loss_MSE, val_every_epoch)
@@ -235,7 +240,7 @@ def run_experiments(config, train_loader, val_loader,
                 best_val_loss_MSE = best_val_loss
             MSE_test_loss, MSE_test_R2 = NPP.evaluate_model(eval_loader)
             print(f"MSE Loss| Loss: {MSE_test_loss}, R2: {MSE_test_R2} ")
-        
+            
         else:
             # run NPP train
             NPP = NeuralPointProcesses(kernel=kernel, kernel_mode=kernel_mode, num_encoder=num_encoder, num_decoder=num_decoder, input_shape=input_shape, input_channel=input_channel, deeper=deeper, kernel_param=kernel_param, lr=lr)
@@ -292,11 +297,11 @@ def parse_args():
     parser.add_argument("--d", type=int, default=10, help="Value for 'd'")
     parser.add_argument("--n_pins", type=int, default=500, help="Value for 'n_pins'")
     parser.add_argument("--r", type=int, default=3, help="Value for 'r'")
+    parser.add_argument("--seed", type=int, default=1, help="seed for pytorch and np")
 
     # Hyperparameters
-    parser.add_argument("--epochs", type=int, default=200, help="Number of epochs")
+    parser.add_argument("--epochs", type=int, default=1000, help="Number of epochs")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
-    parser.add_argument("--learning_rate", type=float, default=0.1, help="Learning rate")
     parser.add_argument("--val_every_epoch", type=int, default=5, help="Number of epochs in between validations")
     parser.add_argument("--num_runs", type=int, default=3,
                         help="Number of different trainings to do per model and sigma")
@@ -323,15 +328,14 @@ def main():
     args = parse_args()
     start_time = time.time()
     # Set a random seed for PyTorch
-    seed = 0  # You can use any integer value as the seed
+    seed = args.seed  # You can use any integer value as the seed
     torch.manual_seed(seed)
     # Set a random seed for NumPy (if you're using NumPy operations)
     np.random.seed(seed)
 
     config = vars(args)
-    config['seed'] = seed
     dataset = config['dataset']
-    input_channel, input_shape, train_loader, val_loader, eval_loader = data_prepare(config, seed)
+    input_channel, input_shape, train_loader, val_loader, eval_loader = data_prepare(config)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Run and save the pipeline data
