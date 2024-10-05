@@ -65,7 +65,7 @@ class NPPLoss(nn.Module):
                 kernel_matrix = self.kernel(pins[i].float(), pins[i].float(), kernel_params[i] if kernel_params is not None else None)
                 noise_kernel = kernel_matrix+ self.noise * torch.eye(len(pins[i]), device=pins[i].device)
                 pseudo_inv = torch.linalg.pinv(noise_kernel) 
-                loss += 1 / len(y_true[i]) * (torch.matmul(diff.t(), torch.matmul(pseudo_inv, diff))+torch.logdet(noise_kernel))
+                loss += 1 / len(y_true[i]) * (torch.matmul(diff.t(), torch.matmul(pseudo_inv, diff)) + torch.logdet(noise_kernel))
 
         loss /= len(y_true)
         return loss
