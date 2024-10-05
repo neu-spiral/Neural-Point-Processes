@@ -8,7 +8,7 @@ from tools.models import Autoencoder
 from tools.kernels import RBFKernel, SMKernel
 from tools.losses import NPPLoss
 from tools.optimization import EarlyStoppingCallback
-
+import wandb
 
 class NeuralPointProcesses(nn.Module):
     def __init__(self, identity=False, kernel="RBF", kernel_mode="fixed", D=2, num_encoder=[64, 32], num_decoder=[64], input_shape=32, input_channel=3, deeper=False, kernel_param=1, lr=0.0001, noise=1e-4, device='cuda'):
@@ -63,14 +63,23 @@ class NeuralPointProcesses(nn.Module):
                 self.optimizer.step()
                 total_loss += loss.item()
             total_loss /= len(train_dataloader)
-            scheduler.step(total_loss)
-            if (current_lr != self.optimizer.param_groups[0]["lr"]):
-                current_lr = self.optimizer.param_groups[0]["lr"]
-                print("New LR: ", current_lr)
             train_losses.append(total_loss)
+          
+            # Log training loss for each epoch
+            wandb.log({"epoch": epoch, "train_loss": total_loss})
+                
 
             if (epoch) % val_every_epoch == 0:
                 val_loss = self._validate(val_dataloader)
+                val_losses.append(val_loss)
+                
+                # Update LR based on validation loss
+                scheduler.step(val_loss)
+
+                # Log Val loss and LR after the scheduler adjusts it
+                current_lr = self.optimizer.param_groups[0]["lr"]
+                wandb.log({"val_loss": val_loss, "learning rate": current_lr})
+                
                 if not os.path.exists(f'./history/{exp_name}/{experiment_id}'):
                     os.makedirs(f'./history/{exp_name}/{experiment_id}')
 
@@ -81,9 +90,9 @@ class NeuralPointProcesses(nn.Module):
 
                 if early_stopping(epoch, val_loss):
                     break
+                    
                 print(f'Validation Loss: {val_loss:.4f}')
-                val_losses.append(val_loss)
-
+                
         self.load_best_model(experiment_id, exp_name)
         return train_losses, val_losses, global_best_val_loss
 

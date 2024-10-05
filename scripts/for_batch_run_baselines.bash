@@ -5,22 +5,22 @@
 # Define kernel parameters for each kernel type
 declare -A kernel_params
 # 0 is MSE and the rests are RBF or SM
-kernel_params["RBF"]="0 0.1 0.2 0.5 1 2"
+kernel_params["RBF"]="0 0.1 0.2 0.5 2"
 kernel_params["SM"]="1 2 3 4 5"
 
 # Define ranges for d, n_pins, kernel modes, and learning rates
-d_values=("3" "10")
-n_pins_values=("10" "100")
-kernel_modes=("fixed" "learned" "predicted")
-learning_rates=("1e-2" "1e-3" "1e-4")
+d_values=("32" "10")
+n_pins_values=("100") #"10" 
+kernel_modes=("learned" "predicted") #"fixed") # 
+learning_rates=("1e-3" "1e-4") # 
 
-for dataset in PinMNIST # Synthetic Building #
+for dataset in Building #PinMNIST #Synthetic    #
 do
-    for feature in AE DDPM
+    for feature in AE #DDPM
     do
-        for mode in "mesh" "random"
+        for mode in "random" #"mesh" 
         do
-            for kernel in "RBF" "SM"
+            for kernel in "SM" "RBF" 
             do
                 for kernel_param in ${kernel_params[$kernel]}
                 do
