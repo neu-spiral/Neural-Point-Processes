@@ -149,11 +149,11 @@ def data_prepare(config):
     elif dataset == "Cars":
         root_dir=f"/work/DNAL/Datasets/{folder}/images/"
         train_dataset = PinDataset(csv_file=f"{train_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform, n=700)
+                                     root_dir=f"{root_dir}train", transform=transform, n=700)
         val_dataset = PinDataset(csv_file=f"{val_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform, n=100)
+                                     root_dir=f"{root_dir}val", transform=transform, n=100)
         eval_dataset = PinDataset(csv_file=f"{test_data_folder}/pins.csv",
-                                     root_dir=root_dir, transform=transform, n=200)
+                                     root_dir=f"{root_dir}test", transform=transform, n=200)
     else:
         root_dir=f"./data/{folder}/images/"
         transformed_dataset = PinDataset(csv_file=f"{data_folder}/pins.csv",
