@@ -96,12 +96,12 @@ def data_prepare(config):
 
             data_folder = test_data_folder
     elif dataset == "Building":
-        test_data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
+        test_data_folder = f"/work/DNAL/Datasets/{folder}/random_n_pins_{n_pins}"
         if mesh:
-            data_folder = f"./data/{folder}/mesh_{d}_step"
+            data_folder = f"/work/DNAL/Datasets/{folder}/mesh_{d}_step"
             config['n_pins'] = (100 // d + 1) ** 2
         else:
-            data_folder = f"./data/{folder}/random_n_pins_{n_pins}"
+            data_folder = f"/work/DNAL/Datasets/{folder}/random_n_pins_{n_pins}"
             data_folder = test_data_folder
             
     elif dataset == "Cars":
@@ -212,12 +212,12 @@ def run_experiments(config, train_loader, val_loader,
     kernel = config['kernel']
     kernel_mode = config['kernel_mode']
     kernel_param = config['kernel_param']
-    
+    seed = config['seed']
     wandb.login(key="adfa001d32f6744e089d892862fa41c22d40ca15")
     # Initialize wandb run
     wandb.init(
-        project="Neural Point Processes", 
-        name=f"{exp_name}_{experiment_id}",  
+        project=f"Neural Point Processes_{exp_name}", 
+        name=f"{kernel}_{kernel_mode}_{kernel_param}_{lr}_{seed}_{experiment_id}",  
         config=config  # Automatically log your config parameters
     )
     
@@ -253,9 +253,9 @@ def run_experiments(config, train_loader, val_loader,
             losses[f"MSE_run{run}_val"] = val_losses
             if best_val_loss < best_val_loss_MSE:
                 best_val_loss_MSE = best_val_loss
-            MSE_test_loss, MSE_test_R2 = NPP.evaluate_model(eval_loader)
-            print(f"MSE Loss| Loss: {MSE_test_loss}, R2: {MSE_test_R2} ")
-            wandb.log({"MSE_test_loss": MSE_test_loss, "MSE_test_R2": MSE_test_R2})
+            MSE_test_loss, MSE_test_R2, MSE_test_GR2 = NPP.evaluate_model(eval_loader)
+            print(f"MSE Loss| Loss: {MSE_test_loss}, R2: {MSE_test_R2}, GR2: {MSE_test_GR2} ")
+            wandb.log({"MSE_test_loss": MSE_test_loss, "MSE_test_R2": MSE_test_R2, "MSE_test_GR2": MSE_test_GR2})
             
         else:
             # run NPP train
@@ -270,16 +270,16 @@ def run_experiments(config, train_loader, val_loader,
                 best_val_loss_NPP = best_val_loss
                
             for percent in [0.00, 0.25, 0.50, 0.75, 1.00]:
-                NPP_test_loss, NPP_test_R2 = NPP.evaluate_model(eval_loader, partial_percent=percent)
-                print(f"Percent: {percent}| Loss: {NPP_test_loss}, R2: {NPP_test_R2}")
-                wandb.log({f"NPP_test_loss_{percent}": NPP_test_loss, f"NPP_test_R2_{percent}": NPP_test_R2})
+                NPP_test_loss, NPP_test_R2, NPP_test_GR2 = NPP.evaluate_model(eval_loader, partial_percent=percent)
+                print(f"Percent: {percent}| Loss: {NPP_test_loss}, R2: {NPP_test_R2}, GR2: {NPP_test_GR2}")
+                wandb.log({f"NPP_test_loss_{percent}": NPP_test_loss, f"NPP_test_R2_{percent}": NPP_test_R2, f"NPP_test_GR2_{percent}": NPP_test_GR2})
    
     if kernel_param == 0:
         # MSE test
         NPP.load_best_model(experiment_id, exp_name)
         MSE_test_loss, MSE_test_R2 = NPP.evaluate_model(eval_loader)
         f = open(f"./history/{exp_name}/{experiment_id}/results.txt", "w")
-        f.write(f"Results {experiment_id}: Best Val: {best_val_loss_MSE} \n MSE: {MSE_test_loss}, R2: {MSE_test_R2} ")
+        f.write(f"Results {experiment_id}: Best Val: {best_val_loss_MSE} \n MSE: {MSE_test_loss}, R2: {MSE_test_R2}, GR2: {MSE_test_GR2}")
         f.close()
         print("metrics saved")
     else:
@@ -289,11 +289,11 @@ def run_experiments(config, train_loader, val_loader,
         f.write(f"Results {experiment_id}: Best Val: {best_val_loss_NPP} \n")
         for percent in [0.00, 0.25, 0.50, 0.75, 1.00]:
             print(f'Percent testing {percent}')  
-            NPP_test_loss, NPP_test_R2 = NPP.evaluate_model(eval_loader, partial_percent=percent)
-            print(f"Percent: {percent}| Loss: {NPP_test_loss}, R2: {NPP_test_R2}")
+            NPP_test_loss, NPP_test_R2, NPP_test_GR2 = NPP.evaluate_model(eval_loader, partial_percent=percent)
+            print(f"Percent: {percent}| Loss: {NPP_test_loss}, R2: {NPP_test_R2}, GR2: {NPP_test_GR2} ")
             # Write output into file
             
-            f.write(f"Percent: {percent}| Loss: {NPP_test_loss}, R2: {NPP_test_R2} \n")
+            f.write(f"Percent: {percent}| Loss: {NPP_test_loss}, R2: {NPP_test_R2}, GR2: {NPP_test_GR2}  \n")
         f.close()
         print("metrics saved")
         
