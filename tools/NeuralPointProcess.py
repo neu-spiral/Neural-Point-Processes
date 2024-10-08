@@ -9,6 +9,8 @@ from tools.kernels import RBFKernel, SMKernel
 from tools.losses import NPPLoss
 from tools.optimization import EarlyStoppingCallback
 import wandb
+import numpy as np
+
 
 class NeuralPointProcesses(nn.Module):
     def __init__(self, identity=False, kernel="RBF", kernel_mode="fixed", D=2, num_encoder=[64, 32], num_decoder=[64], input_shape=32, input_channel=3, deeper=False, kernel_param=1, lr=0.0001, noise=1e-4, device='cuda'):
@@ -139,6 +141,9 @@ class NeuralPointProcesses(nn.Module):
         self.model.eval()
         total_loss = 0.0
         total_r2 = 0.0
+        all_y_true = []
+        all_y_pred = []
+    
         test_criterion = NPPLoss(identity=True, kernel=self.kernel, noise=self.noise).to(self.device)
         with torch.no_grad():
             for batch in dataloader:
@@ -170,13 +175,26 @@ class NeuralPointProcesses(nn.Module):
                             r2 += 1.0
                     else:
                         r2 += r2_score((test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]].cpu().numpy(), y_test[i].cpu().numpy()).item()
+                        
+                        
+                    # Accumulate the true and predicted values for the whole dataset
+                    y_true_sample = y_sample.cpu().numpy()
+                    y_pred_sample = (test_outputs[i].squeeze())[p_sample[:, 0], p_sample[:, 1]].cpu().numpy()
+
+                    all_y_true.append(y_true_sample)
+                    all_y_pred.append(y_pred_sample)
                 loss = test_criterion(y_test, test_outputs, p_test, kernel_param)
                 total_loss += loss.item()
                 total_r2 += r2 / len(x_test)
+        
+        # Flatten the accumulated lists and calculate R² for the entire dataset
+        all_y_true_flat = np.concatenate(all_y_true)
+        all_y_pred_flat = np.concatenate(all_y_pred)
 
+        total_gr2 = r2_score(all_y_true_flat, all_y_pred_flat)
         total_loss /= len(dataloader)
         total_r2 /= len(dataloader)
-        return total_loss, total_r2
+        return total_loss, total_r2, total_gr2
     
     def GP_prediction(self, x1, y1, mu1, x2, mu2, kernel_param):
         """
