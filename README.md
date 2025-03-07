@@ -215,10 +215,13 @@ Scripts for all methods can be found under
 ```bash
 ./scripts
 ```
-Please change the parameters, paths, and virtual envs accordingly.
+Please change the parameters, paths, and virtual environments accordingly.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+
+## Acknowledgments
+The research was sponsored by the United States Army Core of Engineers (USACE) Engineer Research and Development Center (ERDC) Geospatial Research Laboratory (GRL) and was accomplished under Cooperative Agreement Federal Award Identification Number (FAIN) W9132V-22-2-0001. The views and conclusions contained in this document are those of the authors and should not be interpreted as representing the official policies, either expressed or implied, of USACE EDRC GRL or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for Government purposes notwithstanding any copyright notation herein.
 
 ## Software Acknowledgment
 
