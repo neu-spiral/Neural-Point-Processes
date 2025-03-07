@@ -10,15 +10,15 @@ kernel_params["SM"]="1 2 3 4 5"
 
 # Define ranges for d, n_pins, kernel modes, and learning rates
 d_values=("32" "10")
-n_pins_values=("100") #"10" 
-kernel_modes=("learned" "predicted") #"fixed") # 
+n_pins_values=("10" "100") #
+kernel_modes=("learned" "predicted" "fixed") # 
 learning_rates=("1e-3" "1e-4") # 
 
-for dataset in Building #PinMNIST #Synthetic    #
+for dataset in Building PinMNIST Synthetic Cars   #
 do
-    for feature in AE #DDPM
+    for feature in AE DDPM
     do
-        for mode in "random" #"mesh" 
+        for mode in "random" "mesh" 
         do
             for kernel in "SM" "RBF" 
             do
