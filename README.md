@@ -209,6 +209,13 @@ If you find this work useful, please cite our paper:
 }
 ```
 -->
+
+## Scripts and baselines
+Scripts for all methods can be found under
+```bash
+./scripts
+```
+Please change the parameters, paths, and virtual envs accordingly.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
