@@ -132,10 +132,10 @@ After generating each dataset, make sure that the generated data is in the [data
 
 ## Usage
 
-To train our models (NNP and NPP-GP) and the Plain model you need to use the `npp.py` script. After finishing the training of the models, the models are evaluated automatically for the following values of percentage of labels to be shown partially during testing: `0.25, 0.5, 0.75, 1.00`. The code can be executed with the following command:
+To train our models (NNP and NPP-GP) and the Plain model you need to use the `NPP.py` script. After finishing the training of the models, the models are evaluated automatically for the following values of percentage of labels to be shown partially during testing: `0.25, 0.5, 0.75, 1.00`. The code can be executed with the following command:
 
 ```bash
-python npp.py --dataset <dataset> --feature <feature> --mode <mode> --n <n> --d <d> --n_pins <n_pins> --partial_percent <partial_percent> --r <r> --epochs <epochs> --batch_size <batch_size> --learning_rate <learning_rate> --val_every_epoch <val_every_epoch> --num_runs <num_runs> --sigmas <sigmas> --num_encoder <num_encoder> --num_decoder <num_decoder> --deeper --experiment_name <experiment_name>
+python NPP.py --dataset <dataset> --feature <feature> --mode <mode> --n <n> --d <d> --n_pins <n_pins> --partial_percent <partial_percent> --r <r> --epochs <epochs> --batch_size <batch_size> --learning_rate <learning_rate> --val_every_epoch <val_every_epoch> --num_runs <num_runs> --sigmas <sigmas> --num_encoder <num_encoder> --num_decoder <num_decoder> --deeper --experiment_name <experiment_name>
 ```
 
 You can customize the execution by modifying the command-line arguments as per your requirements. Below is a description of each available option:
@@ -192,7 +192,7 @@ Before executing the example commands, ensure you have followed the installation
 ### Training and Evaluating the Model
 
 ```bash
-python npp.py --dataset PinMNIST --epochs 200 --batch_size 64 --learning_rate 0.01 --val_every_epoch 5 --num_runs 3 --sigmas 0.1 0.5 1.0 --num_encoder 32 16 --num_decoder 32 --experiment_name my_experiment
+python NPP.py --dataset PinMNIST --epochs 200 --batch_size 64 --learning_rate 0.01 --val_every_epoch 5 --num_runs 3 --sigmas 0.1 0.5 1.0 --num_encoder 32 16 --num_decoder 32 --experiment_name my_experiment
 ```
 
 Once the script is run, you can visualize the results using the notebook: `results_summary.ipynb`.
