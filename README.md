@@ -1,4 +1,4 @@
-# Neural Point Processes for Pixel-wise Regression
+# Neural Point Processes for Pixel-wise Regression (AISTATS 2025)
 
 This repository contains the implementation of the paper "Neural Point Processes for Pixel-wise Regression," which introduces a novel approach combining 2D Gaussian Processes with neural networks to address pixel-wise regression problems in sparsely annotated images. Our method, termed Neural Point Processes (NPP), leverages spatial correlations between sparse labels on images to improve regression accuracy significantly.
 
